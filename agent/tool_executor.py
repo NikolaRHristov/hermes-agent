@@ -185,17 +185,15 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
         # checkpoint state (dedup slot, real snapshots).
         block_result = None
         blocked_by_guardrail = False
-        if _ts_scope_block is not None:
-            # Out-of-scope tool_call: reject before hooks/guardrails/dispatch.
-            block_result = _ts_scope_block
-        else:
-            try:
-                from hermes_cli.plugins import get_pre_tool_call_block_message
-                block_message = get_pre_tool_call_block_message(
-                    function_name, function_args, task_id=effective_task_id or "",
-                )
-            except Exception:
-                block_message = None
+        try:
+            from hermes_cli.plugins import _dispatch_pre_tool_call_hooks
+            block_message, modified_args = _dispatch_pre_tool_call_hooks(
+                function_name, function_args, task_id=effective_task_id or "",
+            )
+            if modified_args is not None:
+                function_args = modified_args
+        except Exception:
+            block_message = None
 
             if block_message is not None:
                 block_result = json.dumps({"error": block_message}, ensure_ascii=False)
@@ -570,38 +568,17 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
         if not isinstance(function_args, dict):
             function_args = {}
 
-        # Tool Search unwrap — see execute_tool_calls_concurrent for full
-        # rationale, including the scope gate (the unwrap dispatches the
-        # underlying tool directly, so session toolset scope is enforced here).
-        _ts_scope_block: Optional[str] = None
+        # Check plugin hooks for block/modify directives before executing.
+        _block_msg: Optional[str] = None
         try:
-            from tools import tool_search as _ts
-            if function_name == _ts.TOOL_CALL_NAME:
-                _underlying, _underlying_args, _err = _ts.resolve_underlying_call(function_args)
-                if not _err and _underlying:
-                    if _underlying in _tool_search_scoped_names(agent):
-                        function_name = _underlying
-                        function_args = _underlying_args
-                    else:
-                        _ts_scope_block = (
-                            f"'{_underlying}' is not available in this session. "
-                            "Use tool_search to find tools you can call."
-                        )
+            from hermes_cli.plugins import _dispatch_pre_tool_call_hooks
+            _block_msg, _modified_args = _dispatch_pre_tool_call_hooks(
+                function_name, function_args, task_id=effective_task_id or "",
+            )
+            if _modified_args is not None:
+                function_args = _modified_args
         except Exception:
             pass
-
-        # Check plugin hooks for a block directive before executing.
-        _block_msg: Optional[str] = None
-        if _ts_scope_block is not None:
-            _block_msg = _ts_scope_block
-        else:
-            try:
-                from hermes_cli.plugins import get_pre_tool_call_block_message
-                _block_msg = get_pre_tool_call_block_message(
-                    function_name, function_args, task_id=effective_task_id or "",
-                )
-            except Exception:
-                pass
 
         _guardrail_block_decision: ToolGuardrailDecision | None = None
         if _block_msg is None:
