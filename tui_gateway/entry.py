@@ -24,6 +24,11 @@ from tui_gateway.transport import TeeTransport
 
 logger = logging.getLogger(__name__)
 
+# Handle for the background MCP tool-discovery thread (see main()).  The first
+# agent build briefly joins this so already-spawning fast servers land before
+# the agent snapshots its tool list (see wait_for_mcp_discovery).
+_mcp_discovery_thread = None
+
 
 def _install_sidecar_publisher() -> None:
     """Mirror every dispatcher emit to the dashboard sidebar via WS.
