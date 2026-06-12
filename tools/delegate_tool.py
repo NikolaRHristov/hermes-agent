@@ -1973,6 +1973,8 @@ def delegate_task(
     toolsets: Optional[List[str]] = None,
     tasks: Optional[List[Dict[str, Any]]] = None,
     max_iterations: Optional[int] = None,
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
     acp_command: Optional[str] = None,
     acp_args: Optional[List[str]] = None,
     role: Optional[str] = None,
@@ -1982,8 +1984,12 @@ def delegate_task(
     Spawn one or more child agents to handle delegated tasks.
 
     Supports two modes:
-      - Single: provide goal (+ optional context, toolsets, role)
-      - Batch:  provide tasks array [{goal, context, toolsets, role}, ...]
+      - Single: provide goal (+ optional context, toolsets, model, provider, role)
+      - Batch:  provide tasks array [{goal, context, toolsets, model, provider, role}, ...]
+
+    The 'model' parameter overrides the subagent model (e.g. 'deepseek/deepseek-v4-flash').
+    The 'provider' parameter overrides the subagent provider (e.g. 'deepseek').
+    Per-task model/provider beats top-level values.
 
     The 'role' parameter controls whether a child can further delegate:
     'leaf' (default) cannot; 'orchestrator' retains the delegation
@@ -2070,7 +2076,7 @@ def delegate_task(
         task_list = tasks
     elif goal and isinstance(goal, str) and goal.strip():
         task_list = [
-            {"goal": goal, "context": context, "toolsets": toolsets, "role": top_role}
+            {"goal": goal, "context": context, "toolsets": toolsets, "model": model, "provider": provider, "role": top_role}
         ]
     else:
         return tool_error("Provide either 'goal' (single task) or 'tasks' (batch).")
@@ -2111,16 +2117,21 @@ def delegate_task(
             # Per-task role beats top-level; normalise again so unknown
             # per-task values warn and degrade to leaf uniformly.
             effective_role = _normalize_role(t.get("role") or top_role)
+            # Per-task model/provider beats top-level values.  When set,
+            # they override the delegation config model and provider for this
+            # child only.  When unset, creds from delegation config are used.
+            per_task_model = t.get("model") or creds.get("model")
+            per_task_provider = t.get("provider") or creds.get("provider")
             child = _build_child_agent(
                 task_index=i,
                 goal=t["goal"],
                 context=t.get("context"),
                 toolsets=t.get("toolsets") or toolsets,
-                model=creds["model"],
+                model=per_task_model,
                 max_iterations=effective_max_iter,
                 task_count=n_tasks,
                 parent_agent=parent_agent,
-                override_provider=creds["provider"],
+                override_provider=per_task_provider,
                 override_base_url=creds["base_url"],
                 override_api_key=creds["api_key"],
                 override_api_mode=creds["api_mode"],
@@ -2649,11 +2660,14 @@ def _build_top_level_description() -> str:
         "Only the final summary is returned -- intermediate tool results "
         "never enter your context window.\n\n"
         "TWO MODES (one of 'goal' or 'tasks' is required):\n"
-        "1. Single task: provide 'goal' (+ optional context, toolsets)\n"
+        "1. Single task: provide 'goal' (+ optional context, toolsets, model, provider)\n"
         f"2. Batch (parallel): provide 'tasks' array with up to {max_children} "
         f"items concurrently for this user (configured via "
         f"delegation.max_concurrent_children in config.yaml). "
         f"All run in parallel and results are returned together. {nesting_clause}\n\n"
+        "To route subagents to a different model/provider (e.g. cheap flash model "
+        "for simple tasks), set 'model' and/or 'provider' on the task (or top-level).\n"
+        "When unset, subagents inherit the delegation config or the parent agent.\n\n"
         "WHEN TO USE delegate_task:\n"
         "- Reasoning-heavy subtasks (debugging, code review, research synthesis)\n"
         "- Tasks that would flood your context with intermediate data\n"
@@ -2816,6 +2830,26 @@ DELEGATE_TASK_SCHEMA = {
                     "['terminal', 'file', 'web'] for full-stack tasks."
                 ),
             },
+            "model": {
+                "type": "string",
+                "description": (
+                    "Top-level model override for the subagent "
+                    "(e.g. 'deepseek/deepseek-v4-flash'). "
+                    "Overrides the delegation config model for all tasks. "
+                    "Per-task 'model' beats this value."
+                ),
+            },
+            "provider": {
+                "type": "string",
+                "description": (
+                    "Top-level provider override for the subagent "
+                    "(e.g. 'deepseek'). "
+                    "Overrides the delegation config provider for all tasks. "
+                    "Per-task 'provider' beats this value. "
+                    "When set without a model, the delegation config model "
+                    "(or parent model) is used."
+                ),
+            },
             "tasks": {
                 "type": "array",
                 "items": {
@@ -2830,6 +2864,14 @@ DELEGATE_TASK_SCHEMA = {
                             "type": "array",
                             "items": {"type": "string"},
                             "description": f"Toolsets for this specific task. Available: {_TOOLSET_LIST_STR}. Use 'web' for network access, 'terminal' for shell, 'browser' for web interaction.",
+                        },
+                        "model": {
+                            "type": "string",
+                            "description": "Per-task model override (e.g. 'deepseek/deepseek-v4-flash'). Overrides the top-level model for this task only.",
+                        },
+                        "provider": {
+                            "type": "string",
+                            "description": "Per-task provider override (e.g. 'deepseek'). Overrides the top-level provider for this task only. When set without a model, the delegation config model (or parent model) is used.",
                         },
                         "acp_command": {
                             "type": "string",
@@ -2903,6 +2945,8 @@ registry.register(
         toolsets=args.get("toolsets"),
         tasks=args.get("tasks"),
         max_iterations=args.get("max_iterations"),
+        model=args.get("model"),
+        provider=args.get("provider"),
         acp_command=args.get("acp_command"),
         acp_args=args.get("acp_args"),
         role=args.get("role"),
