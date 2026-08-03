@@ -1932,7 +1932,43 @@ class ContextCompressor(ContextEngine):
             self._cooldown_persist_failed = True
             logger.debug("compression failure cooldown persist failed (non-sqlite): %s", exc)
 
+    def record_timeout_failure(self, error: str) -> None:
+        """Record a consecutive timeout failure using the shared cooldown ladder.
+
+        Used by both the summary-LLM exception handler (inline at line ~3714)
+        and the host-level ``compress_context`` timeout wrapper in
+        ``run_compress_context_with_progress_timeout``. Avoids re-implementing
+        the ladder at each call site (#62452).
+        """
+        _TIMEOUT_COOLDOWN_LADDER = (60, 300, 900)
+        self._consecutive_timeout_failures = (
+            getattr(self, "_consecutive_timeout_failures", 0) + 1
+        )
+        cooldown = _TIMEOUT_COOLDOWN_LADDER[
+            min(self._consecutive_timeout_failures,
+                len(_TIMEOUT_COOLDOWN_LADDER)) - 1
+        ]
+        self._record_compression_failure_cooldown(float(cooldown), error)
+
     def _clear_compression_failure_cooldown(self) -> None:
+        # #76354 review F4: fence check BEFORE cooldown-clear. A late worker
+        # whose host already timed out (and recorded a timeout cooldown) must
+        # not undo that cooldown when its summary eventually succeeds. The
+        # hook is installed by compress_context for the duration of the
+        # fenced call; when it reports cancellation, keep the host's cooldown.
+        cancelled_check = getattr(self, "_compression_cancelled_check", None)
+        if callable(cancelled_check):
+            try:
+                if cancelled_check():
+                    logger.info(
+                        "Skipping compression cooldown clear: host already "
+                        "cancelled this compression attempt"
+                    )
+                    return
+            except Exception:
+                logger.debug(
+                    "compression cancellation check failed", exc_info=True
+                )
         self._summary_failure_cooldown_until = 0.0
         self._last_summary_error = None
         self._consecutive_timeout_failures = 0
