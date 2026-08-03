@@ -23,7 +23,7 @@ A useful report includes:
 
 Please read §2 and §3 before submitting. Reports that demonstrate
 limits of an in-process heuristic this policy does not treat as a
-boundary will be closed as out-of-scope under §3 — but see §3.2:
+boundary will be closed as out-of-scope under §3 - but see §3.2:
 they are still welcome as regular issues or pull requests, just not
 through the private security channel.
 
@@ -48,18 +48,18 @@ operators should reason about them in the same terms.
   agent's context: operator input, web fetches, email, gateway
   messages, file reads, MCP server responses, tool results.
 - **Trust envelope.** The set of resources an operator has implicitly
-  granted Hermes Agent access to by running it — typically, whatever
+  granted Hermes Agent access to by running it - typically, whatever
   the operator's own user account can reach on the host.
 - **Stance.** An explicit statement in Hermes Agent's documentation
   or code about how a consuming layer (adapter, UI, file writer,
-  shell) should treat agent output — e.g. "the dashboard renders
+  shell) should treat agent output - e.g. "the dashboard renders
   agent output as inert HTML."
 
 ### 2.2 The Boundary: OS-Level Isolation
 
 **The only security boundary against an adversarial LLM is the
 operating system.** Nothing inside the agent process constitutes
-containment — not the approval gate, not output redaction, not any
+containment - not the approval gate, not output redaction, not any
 pattern scanner, not any tool allowlist. Any in-process component
 that screens LLM output is a heuristic operating on an
 attacker-influenced string, and this policy treats it as such.
@@ -72,7 +72,7 @@ different threats and an operator should choose deliberately.
 A non-default terminal backend runs LLM-emitted shell commands
 inside a container, remote host, or cloud sandbox. The file tools
 (`read_file`, `write_file`, `patch`) also run through this backend,
-since they are implemented on top of the shell contract — they
+since they are implemented on top of the shell contract - they
 cannot reach paths the backend doesn't expose.
 
 What this confines: anything the agent does by issuing shell or
@@ -90,8 +90,8 @@ operator is otherwise trusted.
 #### Whole-process wrapping
 
 Whole-process wrapping runs the entire agent process tree inside a
-sandbox. Every code path — shell, code-execution, MCP, file tools,
-plugins, hooks, skill loading — is subject to the same filesystem,
+sandbox. Every code path - shell, code-execution, MCP, file tools,
+plugins, hooks, skill loading - is subject to the same filesystem,
 network, process, and (where applicable) inference policy.
 
 Hermes Agent supports this in two ways:
@@ -109,8 +109,8 @@ Hermes Agent supports this in two ways:
 Under a whole-process wrapper, Hermes Agent's in-process heuristics
 (§2.4) function as accident-prevention layered on top of a real
 boundary. This is the supported posture when the agent ingests
-content from surfaces the operator does not control — the open web,
-inbound email, multi-user channels, untrusted MCP servers — and for
+content from surfaces the operator does not control - the open web,
+inbound email, multi-user channels, untrusted MCP servers - and for
 production or shared deployments.
 
 Operators running the default local backend with untrusted input
@@ -150,7 +150,7 @@ are useful. They are not boundaries.
   patterns. It is a review aid; the boundary for third-party skills
   is operator review before install. Reviewing a skill means
   reading its Python code and scripts, not just its SKILL.md
-  description — skills execute arbitrary Python at import time.
+  description - skills execute arbitrary Python at import time.
 
 ### 2.5 Plugin Trust Model
 
@@ -158,7 +158,7 @@ Plugins load into the agent process and run with full agent
 privileges: they can read the same credentials, call the same
 tools, register the same hooks, and import the same modules as
 anything shipped in-tree. The boundary for third-party plugins is
-operator review before install — the same rule as skills (§2.4),
+operator review before install - the same rule as skills (§2.4),
 called out separately because plugins are architecturally heavier
 and often ship their own background services, network listeners,
 and dependencies.
@@ -241,7 +241,7 @@ authorization model, but the rules below apply uniformly.
   that flushes credentials to an upstream, etc.).
 - Trust-model documentation violations: code behaving contrary to
   what this policy, Hermes Agent's own documentation, or reasonable
-  operator expectations would predict — including cases where
+  operator expectations would predict - including cases where
   Hermes Agent has documented a stance about how its output should
   be rendered by a consuming layer (dashboard, gateway adapter,
   file writer, shell) and a code path breaks that stance.
@@ -251,19 +251,19 @@ authorization model, but the rules below apply uniformly.
 "Out of scope" here means "not a security vulnerability under this
 policy." It does not mean "not worth reporting." Improvements to the
 in-process heuristics, hardening ideas, and UX fixes are welcome as
-regular issues or pull requests — the approval gate can always catch
+regular issues or pull requests - the approval gate can always catch
 more patterns, redaction can always get smarter, adapter behavior
 can always be tightened. These items just don't go through the
 private-disclosure channel and don't receive advisories.
 
-- **Bypasses of in-process heuristics (§2.4)** — approval-gate regex
+- **Bypasses of in-process heuristics (§2.4)** - approval-gate regex
   bypasses, redaction bypasses, Skills Guard pattern bypasses, and
   analogous reports against future heuristics. These components are
   not boundaries; defeating them is not a vulnerability under this
   policy.
 - **Prompt injection per se.** Getting the LLM to emit unusual
-  output — via injected content, hallucination, training artifacts,
-  or any other cause — is not itself a vulnerability. "I achieved
+  output - via injected content, hallucination, training artifacts,
+  or any other cause - is not itself a vulnerability. "I achieved
   prompt injection" without a chained §3.1 outcome is not an
   actionable report under this policy.
 - **Consequences of a chosen isolation posture.** Reports that a
@@ -279,7 +279,7 @@ private-disclosure channel and don't receive advisories.
   flags on the dashboard or other components, disabled approvals,
   local backend in production, development profiles that bypass
   hermes-home security, and similar. Reports against those
-  configurations are not vulnerabilities — that's the flag's job.
+  configurations are not vulnerabilities - that's the flag's job.
 - **Community-contributed skills and plugins.** Third-party skills
   (including the community skills repository) and third-party
   plugins are in the operator's review surface, not Hermes Agent's

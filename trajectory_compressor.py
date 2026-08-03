@@ -390,7 +390,7 @@ class TrajectoryCompressor:
             self.client = None  # Not used directly
             self.async_client = None  # Not used directly
         else:
-            # Custom endpoint — use config's raw base_url + api_key_env
+            # Custom endpoint - use config's raw base_url + api_key_env
             self._use_call_llm = False
             api_key = os.getenv(self.config.api_key_env)
             if not api_key:
@@ -402,7 +402,7 @@ class TrajectoryCompressor:
             self.client = OpenAI(
                 api_key=api_key, base_url=_to_openai_base_url(self.config.base_url))
             # AsyncOpenAI is created lazily in _get_async_client() so it
-            # binds to the current event loop — avoids "Event loop is closed"
+            # binds to the current event loop - avoids "Event loop is closed"
             # when process_directory() is called multiple times (each call
             # creates a new loop via asyncio.run()).
             self.async_client = None
@@ -453,7 +453,7 @@ class TrajectoryCompressor:
             return "minimax-cn"
         if base_url_host_matches(url, "minimax.io"):
             return "minimax"
-        # Unknown base_url — not a known provider
+        # Unknown base_url - not a known provider
         return ""
     
     def count_tokens(self, text: str) -> int:

@@ -8,11 +8,11 @@ Python on Windows has two long-standing text-encoding footguns:
 
 2. Child processes spawned via ``subprocess`` don't know to use UTF-8
    unless ``PYTHONUTF8`` and/or ``PYTHONIOENCODING`` are set in their
-   environment — so any Python subprocess (the execute_code sandbox,
+   environment - so any Python subprocess (the execute_code sandbox,
    delegation children, linter subprocesses, etc.) inherits the same
    cp1252 defaults and hits the same UnicodeEncodeError.
 
-This module fixes both on Windows *only* — POSIX is untouched.  It
+This module fixes both on Windows *only* - POSIX is untouched.  It
 should be imported at the very top of every Hermes entry point
 (``hermes``, ``hermes-agent``, ``hermes-acp``, ``python -m gateway.run``,
 ``batch_runner.py``, ``cron/scheduler.py``) before any other imports
@@ -23,7 +23,7 @@ What this module does on Windows:
   - Sets ``os.environ["PYTHONUTF8"] = "1"`` (PEP 540 UTF-8 mode) so
     every child process we spawn uses UTF-8 for ``open()`` and stdio.
   - Sets ``os.environ["PYTHONIOENCODING"] = "utf-8"`` for belt-and-
-    suspenders — some tools read this instead of / in addition to
+    suspenders - some tools read this instead of / in addition to
     ``PYTHONUTF8``.
   - Reconfigures ``sys.stdout`` / ``sys.stderr`` to UTF-8 in the current
     process, using the ``reconfigure()`` API (Python 3.7+).  This fixes
@@ -41,7 +41,7 @@ What this module does on POSIX:
   - Nothing.  POSIX systems are already UTF-8 by default in 99% of cases,
     and we don't want to touch ``LANG``/``LC_*`` behavior that users may
     have configured intentionally.  If someone hits a C/POSIX locale on
-    Linux, they can export ``PYTHONUTF8=1`` themselves — we won't override.
+    Linux, they can export ``PYTHONUTF8=1`` themselves - we won't override.
 
 Idempotent: safe to call multiple times.  ``_bootstrap_once`` guards
 against double-reconfigure.
@@ -61,7 +61,7 @@ def apply_windows_utf8_bootstrap() -> bool:
 
     Returns True if bootstrap was applied (i.e. we're on Windows and
     haven't already done this), False otherwise.  The return value is
-    advisory — callers normally don't need it, but tests may want to
+    advisory - callers normally don't need it, but tests may want to
     assert the path was taken.
 
     Idempotent: subsequent calls after the first are a no-op.
@@ -82,7 +82,7 @@ def apply_windows_utf8_bootstrap() -> bool:
 
     # 2. Reconfigure the current process's stdio to UTF-8.  Needed
     #    because os.environ changes don't retroactively rebind sys.stdout
-    #    — those were bound at interpreter startup based on the console
+    #    - those were bound at interpreter startup based on the console
     #    code page.  ``reconfigure`` is a TextIOWrapper method since 3.7.
     #
     #    errors="replace" means that if we ever *read* something from
@@ -97,7 +97,7 @@ def apply_windows_utf8_bootstrap() -> bool:
         if reconfigure is None:
             # Not a TextIOWrapper (could be redirected to a BytesIO in
             # tests, or a non-standard stream in some embedded cases).
-            # Skip silently — the env-var fix is still in effect for
+            # Skip silently - the env-var fix is still in effect for
             # child processes, which is the bigger win.
             continue
         try:
@@ -107,7 +107,7 @@ def apply_windows_utf8_bootstrap() -> bool:
             # non-reconfigurable.  Non-fatal.
             pass
 
-    # stdin is reconfigured separately with errors="replace" too — input
+    # stdin is reconfigured separately with errors="replace" too - input
     # from a legacy pipe shouldn't crash the process.
     stdin = getattr(sys, "stdin", None)
     if stdin is not None:
@@ -123,7 +123,7 @@ def apply_windows_utf8_bootstrap() -> bool:
 
 
 def suppress_platform_ver_console() -> None:
-    """Stub ``platform._syscmd_ver`` on Windows — decode-crash + flash guard.
+    """Stub ``platform._syscmd_ver`` on Windows - decode-crash + flash guard.
 
     CPython's ``platform.win32_ver()`` (reached via ``platform.uname()`` /
     ``platform.platform()``, which the OpenAI SDK touches for its
@@ -134,17 +134,17 @@ def suppress_platform_ver_console() -> None:
       workers, kanban workers) flashes a visible console per call.
     - **UnicodeDecodeError on Python 3.11.0/3.11.1**: those micros lack
       CPython's ``encoding="locale"`` fix (added 3.11.2), so under PEP 540
-      UTF-8 mode (which we enable above) the ``ver`` output — OEM code page
-      bytes on localized Windows — is strict-utf-8 decoded and raises,
+      UTF-8 mode (which we enable above) the ``ver`` output - OEM code page
+      bytes on localized Windows - is strict-utf-8 decoded and raises,
       crashing ``platform.platform()`` in any process that inherits
       ``PYTHONUTF8=1`` (issue #69413).
 
     Stubbing ``_syscmd_ver`` to return its inputs makes ``win32_ver()`` hit
     its documented fallback and read the version from
-    ``sys.getwindowsversion()`` — same data, in-process, no subprocess.
+    ``sys.getwindowsversion()`` - same data, in-process, no subprocess.
     Mirrors ``hermes_cli._subprocess_compat.suppress_platform_ver_console``
     (kept there for callers that don't import bootstrap); double
-    application is harmless. Lives here so EVERY entry point gets it —
+    application is harmless. Lives here so EVERY entry point gets it -
     ``tui_gateway/slash_worker.py``, ``tui_gateway/entry.py``,
     ``run_agent.py``, ``batch_runner.py``, and ``cli.py`` import only
     ``hermes_bootstrap``, never ``hermes_cli.main``.
@@ -161,7 +161,7 @@ def suppress_platform_ver_console() -> None:
 
             platform._syscmd_ver = _quiet_syscmd_ver
     except Exception:
-        # Hardening only — never let it break an entry point.
+        # Hardening only - never let it break an entry point.
         pass
 
 
@@ -183,7 +183,7 @@ def harden_import_path(src_root: str | None = None) -> None:
         adds itself to ``PYTHONPATH`` puts the directory there explicitly.
 
     We drop the relative forms outright, then force the real Hermes source root
-    to the front — relocating it ahead of any absolute cwd entry rather than
+    to the front - relocating it ahead of any absolute cwd entry rather than
     only inserting when absent, so an absolute cwd path can't keep winning.
 
     ``src_root`` defaults to the directory this module lives in, which is the
@@ -208,7 +208,7 @@ def activate_durable_lazy_target() -> None:
     are redirected to a writable dir on the data volume
     (``HERMES_LAZY_INSTALL_TARGET``, e.g. ``/opt/data/lazy-packages``).
     Packages installed there on a previous run must be importable on this
-    run, so we activate the dir here — at the very first import, before any
+    run, so we activate the dir here - at the very first import, before any
     backend module imports its SDK.
 
     The activation appends to the END of ``sys.path`` so the core venv
@@ -226,7 +226,7 @@ def activate_durable_lazy_target() -> None:
         pass
 
 
-# Apply on import — entry points just need ``import hermes_bootstrap``
+# Apply on import - entry points just need ``import hermes_bootstrap``
 # (or ``from hermes_bootstrap import apply_windows_utf8_bootstrap``) at
 # the very top of their module, before importing anything else.  The
 # import side effect does the right thing.

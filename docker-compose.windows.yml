@@ -1,5 +1,5 @@
 #
-# docker-compose.windows.yml — Windows Docker Desktop compatible
+# docker-compose.windows.yml - Windows Docker Desktop compatible
 #
 # Differences from docker-compose.yml:
 #   - Removes `network_mode: host` (not supported on Docker Desktop for Windows)

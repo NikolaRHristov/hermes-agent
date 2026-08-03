@@ -23,7 +23,7 @@ from agent.skill_commands import (
 # so the plain head of it previews the SKILL's opening prose as if the user had
 # written it. Scaffolded rows therefore carry a wider excerpt so
 # ``_shape_preview`` can hand it to ``describe_skill_invocation`` and recover
-# ``/work — fix the title leak``: the whole message while it stays under the
+# ``/work - fix the title leak``: the whole message while it stays under the
 # budget, and head + tail (where the typed instruction lands) once it doesn't.
 _PREVIEW_HEAD_CHARS = 63
 
@@ -314,9 +314,9 @@ CREATE INDEX IF NOT EXISTS idx_sessions_handoff_state
 # While a background index rebuild is pending, two state_meta keys define
 # which message rows are currently IN the FTS indexes:
 #
-#   fts_rebuild_high_water  H — MAX(messages.id) at the moment the old
+#   fts_rebuild_high_water  H - MAX(messages.id) at the moment the old
 #                                indexes were dropped
-#   fts_rebuild_progress    P — highest id the chunked backfill has indexed
+#   fts_rebuild_progress    P - highest id the chunked backfill has indexed
 #
 # A row is indexed iff  id <= P  (backfilled)  OR  id > H  (inserted after
 # the drop; ids are AUTOINCREMENT so new rows are always > H and the insert
@@ -384,7 +384,7 @@ END;
 # of the text it covers), and ``role='tool'`` rows are ~90% of message bytes
 # while being almost entirely machine noise (base64 payloads, file dumps,
 # delegation transcripts).  The index therefore reads through
-# ``messages_fts_trigram_src``, a view that excludes tool rows — they stay
+# ``messages_fts_trigram_src``, a view that excludes tool rows - they stay
 # fully stored in ``messages`` and fully searchable via the standard
 # ``messages_fts`` index; they just don't get trigram (CJK substring)
 # treatment.  ``search_messages`` routes CJK queries that filter on
@@ -465,7 +465,7 @@ FTS_CJK_STALE_KEY = "fts_cjk_stale"
 # triggers repairable UNTIL the user opts into `hermes db optimize`. This is
 # the exact inline shape v11..v22 shipped: each virtual table stores its own
 # copy of ``content || tool_name || tool_calls`` and the trigram table indexes
-# every row (including role='tool'). We never CREATE these on a fresh install —
+# every row (including role='tool'). We never CREATE these on a fresh install -
 # fresh installs are born on the v23 external-content schema above. These
 # constants exist so a legacy DB is never accidentally handed the v23 DDL
 # (which would create the external-content trigram source VIEW and leave the

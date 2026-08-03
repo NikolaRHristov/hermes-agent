@@ -1,19 +1,19 @@
 # Hermes Agent Has Had "Routines" Since March
 
-Anthropic just announced [Claude Code Routines](https://claude.com/blog/introducing-routines-in-claude-code) — scheduled tasks, GitHub event triggers, and API-triggered agent runs. Bundled prompt + repo + connectors, running on their infrastructure.
+Anthropic just announced [Claude Code Routines](https://claude.com/blog/introducing-routines-in-claude-code) - scheduled tasks, GitHub event triggers, and API-triggered agent runs. Bundled prompt + repo + connectors, running on their infrastructure.
 
 It's a good feature. We shipped it two months ago.
 
 ---
 
-## The Three Trigger Types — Side by Side
+## The Three Trigger Types - Side by Side
 
 Claude Code Routines offers three ways to trigger an automation:
 
 **1. Scheduled (cron)**
 > "Every night at 2am: pull the top bug from Linear, attempt a fix, and open a draft PR."
 
-Hermes equivalent — works today:
+Hermes equivalent - works today:
 ```bash
 hermes cron create "0 2 * * *" \
   "Pull the top bug from the issue tracker, attempt a fix, and open a draft PR." \
@@ -24,7 +24,7 @@ hermes cron create "0 2 * * *" \
 **2. GitHub Events (webhook)**
 > "Flag PRs that touch the /auth-provider module and post to #auth-changes."
 
-Hermes equivalent — works today:
+Hermes equivalent - works today:
 ```bash
 hermes webhook subscribe auth-watch \
   --events "pull_request" \
@@ -35,14 +35,14 @@ hermes webhook subscribe auth-watch \
 **3. API Triggers**
 > "Read the alert payload, find the owning service, post a triage summary to #oncall."
 
-Hermes equivalent — works today:
+Hermes equivalent - works today:
 ```bash
 hermes webhook subscribe alert-triage \
-  --prompt "Alert: {alert.name} — Severity: {alert.severity}. Find the owning service, investigate, and post a triage summary with proposed first steps." \
+  --prompt "Alert: {alert.name} - Severity: {alert.severity}. Find the owning service, investigate, and post a triage summary with proposed first steps." \
   --deliver slack
 ```
 
-Every use case in their blog post — backlog triage, docs drift, deploy verification, alert correlation, library porting, bespoke PR review — has a working Hermes implementation. No new features needed. It's been shipping since March 2026.
+Every use case in their blog post - backlog triage, docs drift, deploy verification, alert correlation, library porting, bespoke PR review - has a working Hermes implementation. No new features needed. It's been shipping since March 2026.
 
 ---
 
@@ -57,12 +57,12 @@ Every use case in their blog post — backlog triage, docs drift, deploy verific
 | **Script pre-processing** | ❌ | ✅ Python scripts run before agent, inject context |
 | **Skill chaining** | ❌ | ✅ Load multiple skills per automation |
 | **Daily limit** | 5-25 runs/day | **Unlimited** |
-| **Model choice** | Claude only | **Any model** — Claude, GPT, Gemini, DeepSeek, Qwen, local |
+| **Model choice** | Claude only | **Any model** - Claude, GPT, Gemini, DeepSeek, Qwen, local |
 | **Delivery targets** | GitHub comments | Telegram, Discord, Slack, SMS, email, GitHub comments, webhooks, local files |
-| **Infrastructure** | Anthropic's servers | **Your infrastructure** — VPS, home server, laptop |
+| **Infrastructure** | Anthropic's servers | **Your infrastructure** - VPS, home server, laptop |
 | **Data residency** | Anthropic's cloud | **Your machines** |
 | **Cost** | Pro/Max/Team/Enterprise subscription | Your API key, your rates |
-| **Open source** | No | **Yes** — MIT license |
+| **Open source** | No | **Yes** - MIT license |
 
 ---
 
@@ -124,7 +124,7 @@ A nightly backlog triage on Sonnet costs roughly $0.02-0.05. A monitoring check 
 
 ## Get Started
 
-Hermes Agent is open source and free. The automation infrastructure — cron scheduler, webhook platform, skill system, multi-platform delivery — is built in.
+Hermes Agent is open source and free. The automation infrastructure - cron scheduler, webhook platform, skill system, multi-platform delivery - is built in.
 
 ```bash
 curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash

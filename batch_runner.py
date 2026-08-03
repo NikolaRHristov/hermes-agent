@@ -20,13 +20,13 @@ Usage:
     python batch_runner.py --dataset_file=data.jsonl --batch_size=10 --run_name=my_run --distribution=image_gen
 """
 
-# IMPORTANT: hermes_bootstrap must be the very first import — UTF-8 stdio
+# IMPORTANT: hermes_bootstrap must be the very first import - UTF-8 stdio
 # on Windows.  No-op on POSIX.  See hermes_bootstrap.py for full rationale.
 try:
     import hermes_bootstrap  # noqa: F401
 except ModuleNotFoundError:
     # Graceful fallback when hermes_bootstrap isn't registered in the venv
-    # yet — happens during partial ``hermes update`` where git-reset landed
+    # yet - happens during partial ``hermes update`` where git-reset landed
     # new code but ``uv pip install -e .`` didn't finish.  Missing bootstrap
     # means UTF-8 stdio setup is skipped on Windows; POSIX is unaffected.
     pass
@@ -295,7 +295,7 @@ def _process_single_prompt(
                             "metadata": {"batch_num": batch_num, "timestamp": datetime.now().isoformat()},
                         }
             except FileNotFoundError:
-                pass  # Docker CLI not installed — skip check (e.g., Modal backend)
+                pass  # Docker CLI not installed - skip check (e.g., Modal backend)
             except Exception as img_err:
                 if config.get("verbose"):
                     print(f"   Prompt {prompt_index}: Docker image check failed: {img_err}", flush=True)
@@ -877,7 +877,7 @@ class BatchRunner:
         if callable(self.api_key) and not isinstance(self.api_key, str):
             worker_api_key = None
             print(
-                "ℹ️  Detected Entra ID bearer provider — workers will rebuild "
+                "ℹ️  Detected Entra ID bearer provider - workers will rebuild "
                 "credentials from config.yaml in each process.",
                 flush=True,
             )
@@ -981,7 +981,7 @@ class BatchRunner:
                             # Don't fail the run if checkpoint write fails
                             print(f"⚠️  Warning: Failed to save incremental checkpoint: {ckpt_err}")
                 except KeyboardInterrupt:
-                    print("\n⚠️  Interrupted — terminating batch workers...")
+                    print("\n⚠️  Interrupted - terminating batch workers...")
                     pool.terminate()
                     pool.join()
                     raise
@@ -1038,7 +1038,7 @@ class BatchRunner:
         combined_file = self.output_dir / "trajectories.jsonl"
         print(f"\n📦 Combining ALL batch files into {combined_file.name}...")
         
-        # Valid tools auto-derived from model_tools.py — no manual updates needed
+        # Valid tools auto-derived from model_tools.py - no manual updates needed
         VALID_TOOLS = ALL_POSSIBLE_TOOLS
         
         total_entries = 0

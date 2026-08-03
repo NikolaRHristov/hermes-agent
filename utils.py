@@ -93,7 +93,7 @@ def atomic_replace(tmp_path: Union[str, Path], target: Union[str, Path]) -> str:
 
     ``os.replace(tmp, target)`` atomically swaps ``tmp`` into place at
     ``target``.  When ``target`` is a symlink, the symlink itself is
-    replaced with a regular file — silently detaching managed deployments
+    replaced with a regular file - silently detaching managed deployments
     that symlink ``config.yaml`` / ``SOUL.md`` / ``auth.json`` etc. from
     ``~/.hermes/`` to a git-tracked profile package or dotfiles repo
     (GitHub #16743).
@@ -209,7 +209,7 @@ def atomic_json_write(
     try:
         if mode is not None and hasattr(os, "fchmod"):
             # fchmod is Unix-only; Windows' os module has no fchmod. Skipping it
-            # here is safe — mkstemp already created the temp file as 0o600, and
+            # here is safe - mkstemp already created the temp file as 0o600, and
             # the post-replace os.chmod below applies the final mode durably.
             os.fchmod(fd, mode)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -222,7 +222,7 @@ def atomic_json_write(
             )
             f.flush()
             os.fsync(f.fileno())
-        # Preserve symlinks — swap in-place on the real file (GitHub #16743).
+        # Preserve symlinks - swap in-place on the real file (GitHub #16743).
         real_path = atomic_replace(tmp_path, path)
         real_path_obj = Path(real_path)
         _restore_file_owner(real_path_obj, original_owner)
@@ -287,7 +287,7 @@ def warn_if_credential_file_broadly_readable(
 class IndentDumper(yaml.SafeDumper):
     """PyYAML dumper that indents list items under mapping keys (2-space).
 
-    Default PyYAML emits "indentless" sequences — list items start at the
+    Default PyYAML emits "indentless" sequences - list items start at the
     same column as their parent mapping key.  ``ruamel.yaml`` (used by
     :func:`atomic_roundtrip_yaml_update`) emits 2-space-indented sequences.
     Mixing both styles in the same ``config.yaml`` produces a file that
@@ -339,7 +339,7 @@ def atomic_yaml_write(
             # cursors) as real UTF-8 instead of fragile escape sequences. Without
             # it, PyYAML emits astral-plane chars as `\UXXXXXXXX` (8-digit) escapes
             # inside multi-line double-quoted strings wrapped with `\`
-            # continuations — a structure that stricter/non-PyYAML parsers and
+            # continuations - a structure that stricter/non-PyYAML parsers and
             # hand-edits routinely break into unclosed quotes, corrupting the whole
             # config (GitHub #51356).
             yaml.dump(
@@ -354,7 +354,7 @@ def atomic_yaml_write(
                 f.write(extra_content)
             f.flush()
             os.fsync(f.fileno())
-        # Preserve symlinks — swap in-place on the real file (GitHub #16743).
+        # Preserve symlinks - swap in-place on the real file (GitHub #16743).
         real_path = atomic_replace(tmp_path, path)
         real_path_obj = Path(real_path)
         _restore_file_owner(real_path_obj, original_owner)
@@ -475,7 +475,7 @@ def fast_safe_load(stream: Any) -> Any:
     Accepts the same inputs as ``yaml.safe_load`` (a ``str``/``bytes`` document
     or a readable file object) and returns the same parsed structure. Falls
     back to PyYAML's pure-Python ``SafeLoader`` when ``CSafeLoader`` isn't
-    available, so behavior is identical everywhere — only the speed differs.
+    available, so behavior is identical everywhere - only the speed differs.
     """
     return yaml.load(stream, Loader=_get_fast_yaml_loader())
 
@@ -570,7 +570,7 @@ def model_forces_max_completion_tokens(model: str) -> bool:
     """Return True for model families that require ``max_completion_tokens``.
 
     OpenAI's newer families reject ``max_tokens`` on /v1/chat/completions with
-    HTTP 400 ``unsupported_parameter`` — the caller must send
+    HTTP 400 ``unsupported_parameter`` - the caller must send
     ``max_completion_tokens`` instead. This covers:
 
     - ``gpt-4o`` / ``gpt-4o-mini`` / ``gpt-4o-*``

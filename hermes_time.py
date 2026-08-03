@@ -9,7 +9,7 @@ Resolution order:
   2. ``timezone`` key in ``~/.hermes/config.yaml``
   3. Falls back to the server's local time (``datetime.now().astimezone()``)
 
-Invalid timezone values log a warning and fall back safely — Hermes never
+Invalid timezone values log a warning and fall back safely - Hermes never
 crashes due to a bad timezone string.
 """
 
@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
-    # Python 3.8 fallback (shouldn't be needed — Hermes requires 3.9+)
+    # Python 3.8 fallback (shouldn't be needed - Hermes requires 3.9+)
     from backports.zoneinfo import ZoneInfo  # type: ignore[no-redef]
 
-# Cached state — resolved once, reused on every call.
+# Cached state - resolved once, reused on every call.
 # Call reset_cache() to force re-resolution (e.g. after config changes).
 _cached_tz: Optional[ZoneInfo] = None
 _cached_tz_name: Optional[str] = None
@@ -40,7 +40,7 @@ def _resolve_timezone_name() -> str:
     This does file I/O when falling through to config.yaml, so callers
     should cache the result rather than calling on every ``now()``.
     """
-    # 1. Environment variable (highest priority — set by Supervisor, etc.)
+    # 1. Environment variable (highest priority - set by Supervisor, etc.)
     tz_env = os.getenv("HERMES_TIMEZONE", "").strip()
     if tz_env:
         return tz_env
@@ -48,7 +48,7 @@ def _resolve_timezone_name() -> str:
     # 2. config.yaml ``timezone`` key
     try:
         # Prefer the shared cached raw-config reader (mtime/size-keyed cache +
-        # libyaml C loader) — a direct yaml.safe_load of a large config.yaml
+        # libyaml C loader) - a direct yaml.safe_load of a large config.yaml
         # costs ~100ms+ and this used to run inside the FIRST system prompt
         # build, on the time-to-first-token critical path.
         try:
@@ -129,7 +129,7 @@ def now() -> datetime:
     tz = get_timezone()
     if tz is not None:
         return datetime.now(tz)
-    # No timezone configured — use server-local (still tz-aware)
+    # No timezone configured - use server-local (still tz-aware)
     return datetime.now().astimezone()
 
 

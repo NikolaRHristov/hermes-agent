@@ -8,13 +8,13 @@
 
 Valoramos las contribuciones en este orden:
 
-1. **Correcciones de errores** — bloqueos, comportamiento incorrecto, pérdida de datos. Siempre la máxima prioridad.
-2. **Compatibilidad entre plataformas** — macOS, diferentes distribuciones de Linux y WSL2 en Windows. Queremos que Hermes funcione en todas partes.
-3. **Fortalecimiento de seguridad** — inyección de shell, inyección de prompts, traversal de rutas, escalada de privilegios. Ver [Consideraciones de Seguridad](#consideraciones-de-seguridad).
-4. **Rendimiento y robustez** — lógica de reintento, manejo de errores, degradación elegante.
-5. **Nuevas habilidades** — pero solo las ampliamente útiles. Ver [¿Debería ser una Habilidad o una Herramienta?](#debería-ser-una-habilidad-o-una-herramienta)
-6. **Nuevas herramientas** — raramente necesarias. La mayoría de las capacidades deberían ser habilidades. Ver más abajo.
-7. **Documentación** — correcciones, aclaraciones, nuevos ejemplos.
+1. **Correcciones de errores** - bloqueos, comportamiento incorrecto, pérdida de datos. Siempre la máxima prioridad.
+2. **Compatibilidad entre plataformas** - macOS, diferentes distribuciones de Linux y WSL2 en Windows. Queremos que Hermes funcione en todas partes.
+3. **Fortalecimiento de seguridad** - inyección de shell, inyección de prompts, traversal de rutas, escalada de privilegios. Ver [Consideraciones de Seguridad](#consideraciones-de-seguridad).
+4. **Rendimiento y robustez** - lógica de reintento, manejo de errores, degradación elegante.
+5. **Nuevas habilidades** - pero solo las ampliamente útiles. Ver [¿Debería ser una Habilidad o una Herramienta?](#debería-ser-una-habilidad-o-una-herramienta)
+6. **Nuevas herramientas** - raramente necesarias. La mayoría de las capacidades deberían ser habilidades. Ver más abajo.
+7. **Documentación** - correcciones, aclaraciones, nuevos ejemplos.
 
 ---
 
@@ -43,9 +43,9 @@ Las habilidades incluidas (en `skills/`) se envían con cada instalación de Her
 - Manejo de documentos, investigación web, flujos de trabajo de desarrollo comunes, administración de sistemas
 - Usadas regularmente por una amplia gama de personas
 
-Si tu habilidad es oficial y útil pero no universalmente necesaria (ej., una integración de servicio de pago, una dependencia pesada), ponla en **`optional-skills/`** — se envía con el repositorio pero no está activada por defecto. Los usuarios pueden descubrirla a través de `hermes skills browse` (etiquetada como "oficial") e instalarla con `hermes skills install` (sin advertencia de terceros, confianza integrada).
+Si tu habilidad es oficial y útil pero no universalmente necesaria (ej., una integración de servicio de pago, una dependencia pesada), ponla en **`optional-skills/`** - se envía con el repositorio pero no está activada por defecto. Los usuarios pueden descubrirla a través de `hermes skills browse` (etiquetada como "oficial") e instalarla con `hermes skills install` (sin advertencia de terceros, confianza integrada).
 
-Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es mejor para un **Skills Hub** — súbela a un registro de habilidades y compártela en el [Discord de Nous Research](https://discord.gg/NousResearch). Los usuarios pueden instalarla con `hermes skills install`.
+Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es mejor para un **Skills Hub** - súbela a un registro de habilidades y compártela en el [Discord de Nous Research](https://discord.gg/NousResearch). Los usuarios pueden instalarla con `hermes skills install`.
 
 ---
 
@@ -55,15 +55,15 @@ Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es me
 
 Los plugins de memoria independientes:
 
-- Implementan el mismo ABC `MemoryProvider` (`agent/memory_provider.py`) — `sync_turn`, `prefetch`, `shutdown` y opcionalmente `post_setup(hermes_home, config)` para integración con el asistente de configuración
-- Usan el mismo sistema de descubrimiento — `discover_memory_providers()` los recoge desde directorios de plugins de usuario/proyecto y entry points de pip
-- Se integran con `hermes memory setup` a través de `post_setup()` — sin necesidad de tocar el código base
+- Implementan el mismo ABC `MemoryProvider` (`agent/memory_provider.py`) - `sync_turn`, `prefetch`, `shutdown` y opcionalmente `post_setup(hermes_home, config)` para integración con el asistente de configuración
+- Usan el mismo sistema de descubrimiento - `discover_memory_providers()` los recoge desde directorios de plugins de usuario/proyecto y entry points de pip
+- Se integran con `hermes memory setup` a través de `post_setup()` - sin necesidad de tocar el código base
 - Pueden registrar sus propios subcomandos CLI a través de `register_cli(subparser)` en un archivo `cli.py`
 - Obtienen todos los mismos hooks de ciclo de vida y plomería de configuración que los proveedores incluidos en el árbol
 
 Los PRs que añadan un nuevo directorio bajo `plugins/memory/` serán cerrados con un puntero para publicar el proveedor como su propio repositorio. Los proveedores en árbol existentes se mantienen; las correcciones de errores para ellos son bienvenidas.
 
-Esto no es una barra de calidad — es una decisión de acoplamiento y mantenimiento. Los proveedores de memoria son el tipo de plugin más común y no deberían vivir todos en este árbol.
+Esto no es una barra de calidad - es una decisión de acoplamiento y mantenimiento. Los proveedores de memoria son el tipo de plugin más común y no deberían vivir todos en este árbol.
 
 ---
 
@@ -74,9 +74,9 @@ Esto no es una barra de calidad — es una decisión de acoplamiento y mantenimi
 | Requisito | Notas |
 |-----------|-------|
 | **Git** | Con la extensión `git-lfs` instalada |
-| **Python 3.11–3.13** | uv lo instalará si falta |
+| **Python 3.11-3.13** | uv lo instalará si falta |
 | **uv** | Gestor de paquetes Python rápido ([instalar](https://docs.astral.sh/uv/)) |
-| **Node.js 20+** | Opcional — necesario para herramientas de navegador y puente WhatsApp (coincide con los engines de `package.json` raíz) |
+| **Node.js 20+** | Opcional - necesario para herramientas de navegador y puente WhatsApp (coincide con los engines de `package.json` raíz) |
 
 ### Clonar e instalar
 
@@ -121,7 +121,7 @@ hermes chat -q "Hola"
 ### Ejecutar tests
 
 ```bash
-# Preferido — coincide con CI (entorno hermético, 4 workers xdist); ver AGENTS.md
+# Preferido - coincide con CI (entorno hermético, 4 workers xdist); ver AGENTS.md
 scripts/run_tests.sh
 
 # Alternativa (activa el venv primero). El wrapper sigue recomendándose
@@ -135,8 +135,8 @@ pytest tests/ -v
 
 ```
 hermes-agent/
-├── run_agent.py              # Clase AIAgent — bucle de conversación central, despacho de herramientas, persistencia de sesión
-├── cli.py                    # Clase HermesCLI — TUI interactiva, integración prompt_toolkit
+├── run_agent.py              # Clase AIAgent - bucle de conversación central, despacho de herramientas, persistencia de sesión
+├── cli.py                    # Clase HermesCLI - TUI interactiva, integración prompt_toolkit
 ├── model_tools.py            # Orquestación de herramientas (capa delgada sobre tools/registry.py)
 ├── toolsets.py               # Agrupaciones y presets de herramientas (hermes-cli, hermes-telegram, etc.)
 ├── hermes_state.py           # Base de datos de sesiones SQLite con búsqueda de texto completo FTS5, títulos de sesión
@@ -161,7 +161,7 @@ hermes-agent/
 │   ├── callbacks.py              # Callbacks interactivos (aclarar, sudo, aprobación)
 │   ├── doctor.py                 # Diagnósticos
 │   ├── skills_hub.py             # CLI del Skills Hub + comando de barra /skills
-│   └── skin_engine.py            # Motor de skins/temas — personalización visual de CLI basada en datos
+│   └── skin_engine.py            # Motor de skins/temas - personalización visual de CLI basada en datos
 │
 ├── tools/                    # Implementaciones de herramientas (auto-registradas)
 │   ├── registry.py               # Registro central de herramientas (esquemas, manejadores, despacho)
@@ -180,7 +180,7 @@ hermes-agent/
 │       ├── local.py, docker.py, ssh.py, singularity.py, modal.py, daytona.py
 │
 ├── gateway/                  # Gateway de mensajería
-│   ├── run.py                    # GatewayRunner — ciclo de vida de plataformas, enrutamiento de mensajes, cron
+│   ├── run.py                    # GatewayRunner - ciclo de vida de plataformas, enrutamiento de mensajes, cron
 │   ├── config.py                 # Resolución de configuración de plataformas
 │   ├── session.py                # Almacén de sesiones, prompts de contexto, políticas de reset
 │   └── platforms/                # Adaptadores de plataformas
@@ -250,7 +250,7 @@ Mensaje del usuario → AIAgent._run_agent_loop()
 
 - **PEP 8** con excepciones prácticas (no imponemos longitud de línea estricta)
 - **Comentarios**: Solo cuando se explica la intención no obvia, compromisos o peculiaridades de API. No narres lo que hace el código
-- **Manejo de errores**: Captura excepciones específicas. Registra con `logger.warning()`/`logger.error()` — usa `exc_info=True` para errores inesperados
+- **Manejo de errores**: Captura excepciones específicas. Registra con `logger.warning()`/`logger.error()` - usa `exc_info=True` para errores inesperados
 - **Multiplataforma**: Nunca asumas Unix. Ver [Compatibilidad Multiplataforma](#compatibilidad-multiplataforma)
 
 ---
@@ -262,7 +262,7 @@ Antes de escribir una herramienta, pregúntate: [¿debería ser una habilidad en
 Las herramientas se auto-registran en el registro central. Cada archivo de herramienta co-localiza su esquema, manejador y registro:
 
 ```python
-"""my_tool — Breve descripción de lo que hace esta herramienta."""
+"""my_tool - Breve descripción de lo que hace esta herramienta."""
 
 import json
 from tools.registry import registry
@@ -347,8 +347,8 @@ description: Breve descripción (mostrada en los resultados de búsqueda de habi
 version: 1.0.0
 author: Tu Nombre
 license: MIT
-platforms: [macos, linux]          # Opcional — restringir a plataformas de SO específicas
-required_environment_variables:    # Opcional — metadatos de configuración segura al cargar
+platforms: [macos, linux]          # Opcional - restringir a plataformas de SO específicas
+required_environment_variables:    # Opcional - metadatos de configuración segura al cargar
   - name: MY_API_KEY
     prompt: Clave API
     help: Dónde obtenerla
@@ -369,7 +369,7 @@ metadata:
 Introducción breve.
 
 ## Cuándo Usar
-Condiciones de activación — ¿cuándo debería el agente cargar esta habilidad?
+Condiciones de activación - ¿cuándo debería el agente cargar esta habilidad?
 
 ## Referencia Rápida
 Tabla de comandos o llamadas API comunes.
@@ -386,7 +386,7 @@ Cómo confirma el agente que funcionó.
 
 ### Estándares de autoría de habilidades (OBLIGATORIOS)
 
-Todo skill nuevo o modernizado — incluido, opcional o contribuido — debe cumplir estos estándares antes del merge:
+Todo skill nuevo o modernizado - incluido, opcional o contribuido - debe cumplir estos estándares antes del merge:
 
 1. **`description` ≤ 60 caracteres, una oración, termina con punto.** Las descripciones largas saturan la UI de listado de habilidades. Indica la capacidad, no la implementación. Sin palabras de marketing ("potente", "completo", "fluido", "avanzado").
 
@@ -408,7 +408,7 @@ Todo skill nuevo o modernizado — incluido, opcional o contribuido — debe cum
 
 ## Añadir una Skin / Tema
 
-Hermes usa un sistema de skins basado en datos — no se necesitan cambios de código para añadir una nueva skin.
+Hermes usa un sistema de skins basado en datos - no se necesitan cambios de código para añadir una nueva skin.
 
 **Opción A: Skin de usuario (archivo YAML)**
 
@@ -440,7 +440,7 @@ branding:
 tool_prefix: "╎"
 ```
 
-Todos los campos son opcionales — los valores faltantes se heredan de la skin predeterminada.
+Todos los campos son opcionales - los valores faltantes se heredan de la skin predeterminada.
 
 **Opción B: Skin integrada**
 
@@ -464,7 +464,7 @@ que toca el SO, asume que *cualquier* plataforma puede alcanzar tu ruta de códi
 
 1. **Nunca llames `os.kill(pid, 0)` para comprobaciones de liveness.** En Windows **NO es una operación sin efecto**. Usa `psutil.pid_exists(pid)` en su lugar.
 
-2. **Usa `shutil.which()` antes de hacer shell — no asumas que Windows tiene las herramientas que tiene Linux.** `ps`, `kill`, `grep`, `awk`, etc. simplemente no existen en Windows.
+2. **Usa `shutil.which()` antes de hacer shell - no asumas que Windows tiene las herramientas que tiene Linux.** `ps`, `kill`, `grep`, `awk`, etc. simplemente no existen en Windows.
 
 3. **`termios` y `fcntl` son solo de Unix.** Siempre captura tanto `ImportError` como `NotImplementedError`.
 
@@ -591,7 +591,7 @@ test(tools): añadir tests unitarios para file_operations
 
 ## Comunidad
 
-- **Discord**: [discord.gg/NousResearch](https://discord.gg/NousResearch) — para preguntas, mostrar proyectos y compartir habilidades
+- **Discord**: [discord.gg/NousResearch](https://discord.gg/NousResearch) - para preguntas, mostrar proyectos y compartir habilidades
 - **GitHub Discussions**: Para propuestas de diseño y discusiones de arquitectura
 - **Skills Hub**: Sube habilidades especializadas a un registro y compártelas con la comunidad
 

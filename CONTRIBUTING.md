@@ -8,21 +8,21 @@ Thank you for contributing to Hermes Agent! This guide covers everything you nee
 
 We value contributions in this order:
 
-1. **Bug fixes** — crashes, incorrect behavior, data loss. Always top priority.
-2. **Cross-platform compatibility** — macOS, different Linux distros, and WSL2 on Windows. We want Hermes to work everywhere.
-3. **Security hardening** — shell injection, prompt injection, path traversal, privilege escalation. See [Security](#security-considerations).
-4. **Performance and robustness** — retry logic, error handling, graceful degradation.
-5. **New skills** — but only broadly useful ones. See [Should it be a Skill or a Tool?](#should-it-be-a-skill-or-a-tool)
-6. **New tools** — rarely needed. Most capabilities should be skills. See below.
-7. **Documentation** — fixes, clarifications, new examples.
+1. **Bug fixes** - crashes, incorrect behavior, data loss. Always top priority.
+2. **Cross-platform compatibility** - macOS, different Linux distros, and WSL2 on Windows. We want Hermes to work everywhere.
+3. **Security hardening** - shell injection, prompt injection, path traversal, privilege escalation. See [Security](#security-considerations).
+4. **Performance and robustness** - retry logic, error handling, graceful degradation.
+5. **New skills** - but only broadly useful ones. See [Should it be a Skill or a Tool?](#should-it-be-a-skill-or-a-tool)
+6. **New tools** - rarely needed. Most capabilities should be skills. See below.
+7. **Documentation** - fixes, clarifications, new examples.
 
 ---
 
 ## Before You Start: Search First
 
-A quick search before you build saves your time and keeps the PR queue clean — duplicates are common here, so it's worth a minute up front.
+A quick search before you build saves your time and keeps the PR queue clean - duplicates are common here, so it's worth a minute up front.
 
-- **Search both open *and* merged PRs and issues** for your topic or error symptom — the duplicate-check in the PR template fires at review time, after you've already done the work:
+- **Search both open *and* merged PRs and issues** for your topic or error symptom - the duplicate-check in the PR template fires at review time, after you've already done the work:
   ```bash
   gh search issues --repo NousResearch/hermes-agent "<your terms>"
   gh search prs --repo NousResearch/hermes-agent --state all "<your terms>"
@@ -32,7 +32,7 @@ A quick search before you build saves your time and keeps the PR queue clean —
 - **If an open PR already addresses it**, consider reviewing or improving that one instead of opening a competing duplicate.
 - **For larger work**, comment on the issue to signal you're working on it, so others don't start the same thing.
 
-Related: #38284 covers the agent-side analog — Hermes itself checking existing issues and PRs before deep self-troubleshooting. This section is the human-contributor complement.
+Related: #38284 covers the agent-side analog - Hermes itself checking existing issues and PRs before deep self-troubleshooting. This section is the human-contributor complement.
 
 ---
 
@@ -61,9 +61,9 @@ Bundled skills (in `skills/`) ship with every Hermes install. They should be **b
 - Document handling, web research, common dev workflows, system administration
 - Used regularly by a wide range of people
 
-If your skill is official and useful but not universally needed (e.g., a paid service integration, a heavyweight dependency), put it in **`optional-skills/`** — it ships with the repo but isn't activated by default. Users can discover it via `hermes skills browse` (labeled "official") and install it with `hermes skills install` (no third-party warning, built-in trust).
+If your skill is official and useful but not universally needed (e.g., a paid service integration, a heavyweight dependency), put it in **`optional-skills/`** - it ships with the repo but isn't activated by default. Users can discover it via `hermes skills browse` (labeled "official") and install it with `hermes skills install` (no third-party warning, built-in trust).
 
-If your skill is specialized, community-contributed, or niche, it's better suited for a **Skills Hub** — upload it to a skills registry and share it in the [Nous Research Discord](https://discord.gg/NousResearch). Users can install it with `hermes skills install`.
+If your skill is specialized, community-contributed, or niche, it's better suited for a **Skills Hub** - upload it to a skills registry and share it in the [Nous Research Discord](https://discord.gg/NousResearch). Users can install it with `hermes skills install`.
 
 ---
 
@@ -73,32 +73,32 @@ If your skill is specialized, community-contributed, or niche, it's better suite
 
 Standalone memory plugins:
 
-- Implement the same `MemoryProvider` ABC (`agent/memory_provider.py`) — `sync_turn`, `prefetch`, `shutdown`, and optionally `post_setup(hermes_home, config)` for setup-wizard integration
-- Use the same discovery system — `discover_memory_providers()` picks them up from user/project plugin directories and pip entry points
-- Integrate with `hermes memory setup` via `post_setup()` — no need to touch core code
+- Implement the same `MemoryProvider` ABC (`agent/memory_provider.py`) - `sync_turn`, `prefetch`, `shutdown`, and optionally `post_setup(hermes_home, config)` for setup-wizard integration
+- Use the same discovery system - `discover_memory_providers()` picks them up from user/project plugin directories and pip entry points
+- Integrate with `hermes memory setup` via `post_setup()` - no need to touch core code
 - Can register their own CLI subcommands via `register_cli(subparser)` in a `cli.py` file
 - Get all the same lifecycle hooks and config plumbing as in-tree providers
 
 PRs that add a new directory under `plugins/memory/` will be closed with a pointer to publish the provider as its own repo. Existing in-tree providers stay; bug fixes to them are welcome.
 
-This isn't a quality bar — it's a coupling-and-maintenance decision. Memory providers are the most common plugin type and they shouldn't all live in this tree.
+This isn't a quality bar - it's a coupling-and-maintenance decision. Memory providers are the most common plugin type and they shouldn't all live in this tree.
 
 ---
 
 ## Third-Party Product Integrations: Ship as a Standalone Plugin
 
-The same rule extends to **any plugin that integrates someone else's product or project** — observability/metrics backends, vendor SaaS connectors, analytics dashboards, paid-service tie-ins, and similar third-party integrations. **These do not land in this repo.**
+The same rule extends to **any plugin that integrates someone else's product or project** - observability/metrics backends, vendor SaaS connectors, analytics dashboards, paid-service tie-ins, and similar third-party integrations. **These do not land in this repo.**
 
 The reason is maintenance load, not quality. Every external product absorbed into the core tree becomes ours to keep working against a fast-moving codebase, for a backend we don't own and can't control. Hermes ships a lot and the core moves quickly; coupling third-party products into it creates an open-ended burden on the maintainers.
 
 Publish these as a **standalone plugin repo** instead:
 
-- Implement the relevant ABC and use the existing plugin discovery path (`~/.hermes/plugins/`, project `.hermes/plugins/`, or a pip entry point) — see [Build a Hermes Plugin](https://hermes-agent.nousresearch.com/docs/guides/build-a-hermes-plugin)
-- Register lifecycle hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), and CLI subcommands (`ctx.register_cli_command`) through the surface we already expose — no core changes needed
-- If your plugin needs a capability the framework doesn't expose, that's a feature request to **widen the generic plugin surface** (a new hook or `ctx` method) — never special-case your plugin in core
+- Implement the relevant ABC and use the existing plugin discovery path (`~/.hermes/plugins/`, project `.hermes/plugins/`, or a pip entry point) - see [Build a Hermes Plugin](https://hermes-agent.nousresearch.com/docs/guides/build-a-hermes-plugin)
+- Register lifecycle hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), and CLI subcommands (`ctx.register_cli_command`) through the surface we already expose - no core changes needed
+- If your plugin needs a capability the framework doesn't expose, that's a feature request to **widen the generic plugin surface** (a new hook or `ctx` method) - never special-case your plugin in core
 - Promote it in the [Nous Research Discord](https://discord.gg/NousResearch) `#plugins-skills-and-skins` channel so users can find and install it
 
-A well-built third-party-product plugin can clear automated review and still be closed for this reason — it's a placement decision, not a verdict on the code. PRs that add such a directory under `plugins/` will be closed with a pointer to publish it as its own repo.
+A well-built third-party-product plugin can clear automated review and still be closed for this reason - it's a placement decision, not a verdict on the code. PRs that add such a directory under `plugins/` will be closed with a pointer to publish it as its own repo.
 
 ---
 
@@ -109,9 +109,9 @@ A well-built third-party-product plugin can clear automated review and still be 
 | Requirement | Notes |
 |-------------|-------|
 | **Git** | With the `git-lfs` extension installed |
-| **Python 3.11–3.13** | uv will install it if missing |
+| **Python 3.11-3.13** | uv will install it if missing |
 | **uv** | Fast Python package manager ([install](https://docs.astral.sh/uv/)) |
-| **Node.js 20+** | Optional — needed for browser tools and WhatsApp bridge (matches root `package.json` engines) |
+| **Node.js 20+** | Optional - needed for browser tools and WhatsApp bridge (matches root `package.json` engines) |
 
 ### Install with the standard installer
 
@@ -201,7 +201,7 @@ ln -sf "$(pwd)/venv/bin/hermes" ~/.local/bin/hermes
 ### Run tests
 
 ```bash
-# Preferred — matches CI (hermetic `env -i`, per-file subprocess isolation
+# Preferred - matches CI (hermetic `env -i`, per-file subprocess isolation
 # via run_tests_parallel.py, worker count auto-scaled); see AGENTS.md
 scripts/run_tests.sh
 
@@ -216,8 +216,8 @@ pytest tests/ -v
 
 ```
 hermes-agent/
-├── run_agent.py              # AIAgent class — core conversation loop, tool dispatch, session persistence
-├── cli.py                    # HermesCLI class — interactive TUI, prompt_toolkit integration
+├── run_agent.py              # AIAgent class - core conversation loop, tool dispatch, session persistence
+├── cli.py                    # HermesCLI class - interactive TUI, prompt_toolkit integration
 ├── model_tools.py            # Tool orchestration (thin layer over tools/registry.py)
 ├── toolsets.py               # Tool groupings and presets (hermes-cli, hermes-telegram, etc.)
 ├── hermes_state.py           # SQLite session database with FTS5 full-text search, session titles
@@ -242,7 +242,7 @@ hermes-agent/
 │   ├── callbacks.py              # Interactive callbacks (clarify, sudo, approval)
 │   ├── doctor.py                 # Diagnostics
 │   ├── skills_hub.py             # Skills Hub CLI + /skills slash command
-│   └── skin_engine.py            # Skin/theme engine — data-driven CLI visual customization
+│   └── skin_engine.py            # Skin/theme engine - data-driven CLI visual customization
 │
 ├── tools/                    # Tool implementations (self-registering)
 │   ├── registry.py               # Central tool registry (schemas, handlers, dispatch)
@@ -261,7 +261,7 @@ hermes-agent/
 │       ├── local.py, docker.py, ssh.py, singularity.py, modal.py, daytona.py
 │
 ├── gateway/                  # Messaging gateway
-│   ├── run.py                    # GatewayRunner — platform lifecycle, message routing, cron
+│   ├── run.py                    # GatewayRunner - platform lifecycle, message routing, cron
 │   ├── config.py                 # Platform configuration resolution
 │   ├── session.py                # Session store, context prompts, reset policies
 │   └── platforms/                # Platform adapters
@@ -330,8 +330,8 @@ User message → AIAgent._run_agent_loop()
 ## Code Style
 
 - **PEP 8** with practical exceptions (we don't enforce strict line length)
-- **Comments**: Only when explaining non-obvious intent, trade-offs, or API quirks. Don't narrate what the code does — `# increment counter` adds nothing
-- **Error handling**: Catch specific exceptions. Log with `logger.warning()`/`logger.error()` — use `exc_info=True` for unexpected errors so stack traces appear in logs
+- **Comments**: Only when explaining non-obvious intent, trade-offs, or API quirks. Don't narrate what the code does - `# increment counter` adds nothing
+- **Error handling**: Catch specific exceptions. Log with `logger.warning()`/`logger.error()` - use `exc_info=True` for unexpected errors so stack traces appear in logs
 - **Cross-platform**: Never assume Unix. See [Cross-Platform Compatibility](#cross-platform-compatibility)
 
 ---
@@ -343,7 +343,7 @@ Before writing a tool, ask: [should this be a skill instead?](#should-it-be-a-sk
 Tools self-register with the central registry. Each tool file co-locates its schema, handler, and registration:
 
 ```python
-"""my_tool — Brief description of what this tool does."""
+"""my_tool - Brief description of what this tool does."""
 
 import json
 from tools.registry import registry
@@ -429,10 +429,10 @@ description: Brief description (shown in skill search results)
 version: 1.0.0
 author: Your Name
 license: MIT
-platforms: [macos, linux]          # Optional — restrict to specific OS platforms
+platforms: [macos, linux]          # Optional - restrict to specific OS platforms
                                    #   Valid: macos, linux, windows
                                    #   Omit to load on all platforms (default)
-required_environment_variables:    # Optional — secure setup-on-load metadata
+required_environment_variables:    # Optional - secure setup-on-load metadata
   - name: MY_API_KEY
     prompt: API key
     help: Where to get it
@@ -444,8 +444,8 @@ metadata:
   hermes:
     tags: [Category, Subcategory, Keywords]
     related_skills: [other-skill-name]
-    fallback_for_toolsets: [web]       # Optional — show only when toolset is unavailable
-    requires_toolsets: [terminal]      # Optional — show only when toolset is available
+    fallback_for_toolsets: [web]       # Optional - show only when toolset is unavailable
+    requires_toolsets: [terminal]      # Optional - show only when toolset is available
 ---
 
 # Skill Title
@@ -453,7 +453,7 @@ metadata:
 Brief intro.
 
 ## When to Use
-Trigger conditions — when should the agent load this skill?
+Trigger conditions - when should the agent load this skill?
 
 ## Prerequisites
 Env vars, install steps, MCP setup, API key sourcing.
@@ -488,7 +488,7 @@ If the field is omitted or empty, the skill loads on all platforms (backward com
 
 ### Conditional skill activation
 
-Skills can declare conditions that control when they appear in the system prompt, based on which tools and toolsets are available in the current session. This is primarily used for **fallback skills** — alternatives that should only be shown when a primary tool is unavailable.
+Skills can declare conditions that control when they appear in the system prompt, based on which tools and toolsets are available in the current session. This is primarily used for **fallback skills** - alternatives that should only be shown when a primary tool is unavailable.
 
 Four fields are supported under `metadata.hermes`:
 
@@ -510,17 +510,17 @@ metadata:
 **Examples:**
 
 ```yaml
-# DuckDuckGo search — shown when Firecrawl (web toolset) is unavailable
+# DuckDuckGo search - shown when Firecrawl (web toolset) is unavailable
 metadata:
   hermes:
     fallback_for_toolsets: [web]
 
-# Smart home skill — only useful when terminal is available
+# Smart home skill - only useful when terminal is available
 metadata:
   hermes:
     requires_toolsets: [terminal]
 
-# Local browser fallback — shown when Browserbase is unavailable
+# Local browser fallback - shown when Browserbase is unavailable
 metadata:
   hermes:
     fallback_for_toolsets: [browser]
@@ -540,7 +540,7 @@ required_environment_variables:
     required_for: full functionality
 ```
 
-The user may skip setup and keep loading the skill. Hermes only exposes metadata (`stored_as`, `skipped`, `validated`) to the model — never the secret value.
+The user may skip setup and keep loading the skill. Hermes only exposes metadata (`stored_as`, `skipped`, `validated`) to the model - never the secret value.
 
 Legacy `prerequisites.env_vars` remains supported and is normalized into the new representation.
 
@@ -564,7 +564,7 @@ See `skills/gifs/gif-search/` and `skills/email/himalaya/` for examples.
 
 ### Skill authoring standards (HARDLINE)
 
-Every new or modernized skill — bundled, optional, or contributed — must meet these standards before merge. Reviewers reject PRs that violate them.
+Every new or modernized skill - bundled, optional, or contributed - must meet these standards before merge. Reviewers reject PRs that violate them.
 
 1. **`description` ≤ 60 characters, one sentence, ends with a period.** Long descriptions bloat the skill listing UI and dilute the model's attention when many skills are loaded. State the capability, not the implementation. No marketing words ("powerful", "comprehensive", "seamless", "advanced"). Don't repeat the skill name. Verify with:
    ```python
@@ -593,39 +593,39 @@ Every new or modernized skill — bundled, optional, or contributed — must mee
 
    If the skill depends on an MCP server, name the MCP server and document its setup in `## Prerequisites`. Third-party CLIs (e.g. `ffmpeg`, `gh`, a specific SDK) are fine to invoke from inside script files, but the prose should frame the interaction as "invoke through the `terminal` tool", not as a manual shell session.
 
-3. **`platforms:` gating audited against actual script imports.** Skills that use POSIX-only primitives (`fcntl`, `termios`, `os.setsid`, `os.kill(pid, 0)` for liveness, `/proc`, hardcoded `/tmp` paths, `signal.SIGKILL`, bash heredocs, `osascript`, `apt`, `systemctl`) must declare their supported platforms via the `platforms:` frontmatter. Default posture is to fix it cross-platform first — `tempfile.gettempdir()`, `pathlib.Path`, `psutil.pid_exists()`, Python-level filtering instead of `grep`. Gate to a narrower set only when the dependency is genuinely platform-bound (e.g. `osascript` is macOS-only, `/proc` is Linux-only).
+3. **`platforms:` gating audited against actual script imports.** Skills that use POSIX-only primitives (`fcntl`, `termios`, `os.setsid`, `os.kill(pid, 0)` for liveness, `/proc`, hardcoded `/tmp` paths, `signal.SIGKILL`, bash heredocs, `osascript`, `apt`, `systemctl`) must declare their supported platforms via the `platforms:` frontmatter. Default posture is to fix it cross-platform first - `tempfile.gettempdir()`, `pathlib.Path`, `psutil.pid_exists()`, Python-level filtering instead of `grep`. Gate to a narrower set only when the dependency is genuinely platform-bound (e.g. `osascript` is macOS-only, `/proc` is Linux-only).
 
-4. **`author` credits the human contributor first.** For external contributions, the contributor's real name + GitHub handle goes first (`Jane Doe (jane-doe)`); "Hermes Agent" is the secondary collaborator. If the contributor's commit shows "Hermes Agent" as author because they used Hermes to draft the skill, replace it with their actual name — credit the human, not the tool.
+4. **`author` credits the human contributor first.** For external contributions, the contributor's real name + GitHub handle goes first (`Jane Doe (jane-doe)`); "Hermes Agent" is the secondary collaborator. If the contributor's commit shows "Hermes Agent" as author because they used Hermes to draft the skill, replace it with their actual name - credit the human, not the tool.
 
 5. **SKILL.md body uses the modern section order.** `# <Skill> Skill` title, 2-3 sentence intro stating what it does and what it doesn't do, then:
-   - `## When to Use` — trigger conditions
-   - `## Prerequisites` — env vars, install steps, MCP setup, API key sourcing
-   - `## How to Run` — canonical invocation through the `terminal` tool
-   - `## Quick Reference` — flat command/API reference
-   - `## Procedure` — numbered steps with copy-paste commands
-   - `## Pitfalls` — known limits, rate limits, things that look broken but aren't
-   - `## Verification` — single command that proves the skill works
+   - `## When to Use` - trigger conditions
+   - `## Prerequisites` - env vars, install steps, MCP setup, API key sourcing
+   - `## How to Run` - canonical invocation through the `terminal` tool
+   - `## Quick Reference` - flat command/API reference
+   - `## Procedure` - numbered steps with copy-paste commands
+   - `## Pitfalls` - known limits, rate limits, things that look broken but aren't
+   - `## Verification` - single command that proves the skill works
 
    Target ~200 lines for a complex skill, ~100 lines for a simple one. Cut redundant intro fluff, marketing prose, and re-explanations of env vars already documented in `## Prerequisites`.
 
-6. **Scripts go in `scripts/`, references in `references/`, templates in `templates/`.** Don't expect the model to inline-write parsers, XML walkers, or non-trivial logic every call — ship a helper script. Reference scripts from SKILL.md by path relative to the skill directory.
+6. **Scripts go in `scripts/`, references in `references/`, templates in `templates/`.** Don't expect the model to inline-write parsers, XML walkers, or non-trivial logic every call - ship a helper script. Reference scripts from SKILL.md by path relative to the skill directory.
 
 7. **Tests live at `tests/skills/test_<skill>_skill.py`** and use only stdlib + pytest + `unittest.mock`. No live network calls. Run via `scripts/run_tests.sh tests/skills/test_<skill>_skill.py -q`. Must pass under the hermetic CI env (no API keys leaking through). Use `monkeypatch` and `tmp_path` for any env-var or filesystem dependencies.
 
-8. **`.env.example` additions are isolated to a clearly delimited block.** Don't touch the surrounding file — contributor-supplied `.env.example` versions are usually stale, and edits outside the skill's own block will be dropped during salvage. Comment all values with `#` (it's documentation, not live config).
+8. **`.env.example` additions are isolated to a clearly delimited block.** Don't touch the surrounding file - contributor-supplied `.env.example` versions are usually stale, and edits outside the skill's own block will be dropped during salvage. Comment all values with `#` (it's documentation, not live config).
 
 ### Skill guidelines
 
 - **No external dependencies unless absolutely necessary.** Prefer stdlib Python, curl, and existing Hermes tools (`web_extract`, `terminal`, `read_file`).
 - **Progressive disclosure.** Put the most common workflow first. Edge cases and advanced usage go at the bottom.
-- **Include helper scripts** for XML/JSON parsing or complex logic — don't expect the LLM to write parsers inline every time.
+- **Include helper scripts** for XML/JSON parsing or complex logic - don't expect the LLM to write parsers inline every time.
 - **Test it.** Run `hermes --toolsets skills -q "Use the X skill to do Y"` and verify the agent follows the instructions correctly.
 
 ---
 
 ## Adding a Skin / Theme
 
-Hermes uses a data-driven skin system — no code changes needed to add a new skin.
+Hermes uses a data-driven skin system - no code changes needed to add a new skin.
 
 **Option A: User skin (YAML file)**
 
@@ -659,7 +659,7 @@ branding:
 tool_prefix: "╎"             # Tool output line prefix
 ```
 
-All fields are optional — missing values inherit from the default skin.
+All fields are optional - missing values inherit from the default skin.
 
 **Option B: Built-in skin**
 
@@ -685,21 +685,21 @@ that touches the OS, assume *any* platform can hit your code path.
 ### Critical rules
 
 1. **Never call `os.kill(pid, 0)` for liveness checks.** `os.kill(pid, 0)`
-   is a standard POSIX idiom to check "is this PID alive" — the signal 0
+   is a standard POSIX idiom to check "is this PID alive" - the signal 0
    is a no-op permission check. **On Windows it is NOT a no-op.** Python's
    Windows `os.kill` maps `sig=0` to `CTRL_C_EVENT` (they collide at the
    integer value 0) and routes it through `GenerateConsoleCtrlEvent(0, pid)`,
    which broadcasts Ctrl+C to the **entire console process group** containing
    the target PID. "Probe if alive" silently becomes "kill the target and
    often unrelated processes sharing its console." See [bpo-14484](https://bugs.python.org/issue14484)
-   (open since 2012 — will never be fixed for compat reasons).
+   (open since 2012 - will never be fixed for compat reasons).
 
-   **Preferred:** use `psutil` (a core dependency — always available):
+   **Preferred:** use `psutil` (a core dependency - always available):
 
    ```python
    import psutil
    if psutil.pid_exists(pid):
-       # process is alive — safe on every platform
+       # process is alive - safe on every platform
        ...
    ```
 
@@ -712,11 +712,11 @@ that touches the OS, assume *any* platform can hit your code path.
    Audit grep for new callsites: `rg "os\.kill\([^,]+,\s*0\s*\)"`. Any hit
    in non-test code is presumptively a Windows silent-kill bug.
 
-2. **Use `shutil.which()` before shelling out — don't assume Windows has
+2. **Use `shutil.which()` before shelling out - don't assume Windows has
    tools Linux has.** `wmic` was removed in Windows 10 21H1 and later. `ps`,
    `kill`, `grep`, `awk`, `fuser`, `lsof`, `pgrep`, and most POSIX CLI tools
    simply don't exist on Windows. Test availability with
-   `shutil.which("tool")` and fall back to a Windows-native equivalent —
+   `shutil.which("tool")` and fall back to a Windows-native equivalent -
    usually PowerShell via `subprocess.run(["powershell", "-NoProfile",
    "-Command", ...])`.
 
@@ -747,7 +747,7 @@ that touches the OS, assume *any* platform can hit your code path.
        load_dotenv(env_path, encoding="latin-1")
    ```
    Config files (`config.yaml`) may be saved with a UTF-8 BOM by Notepad and
-   similar editors — use `encoding="utf-8-sig"` when reading files that
+   similar editors - use `encoding="utf-8-sig"` when reading files that
    could have been touched by a Windows GUI editor.
 
 5. **Process management.** `os.setsid()`, `os.killpg()`, `os.fork()`,
@@ -761,7 +761,7 @@ that touches the OS, assume *any* platform can hit your code path.
    ```
 
    **Preferred:** for killing a process AND its children (what `os.killpg`
-   does on POSIX), use `psutil` — it works on every platform:
+   does on POSIX), use `psutil` - it works on every platform:
    ```python
    import psutil
    try:
@@ -779,12 +779,12 @@ that touches the OS, assume *any* platform can hit your code path.
    `signal` module raises `AttributeError` at import time if you reference
    them on Windows. Use `getattr(signal, "SIGKILL", signal.SIGTERM)` or
    gate the whole block behind a platform check. `loop.add_signal_handler`
-   raises `NotImplementedError` on Windows — always catch it.
+   raises `NotImplementedError` on Windows - always catch it.
 
 7. **Path separators.** Use `pathlib.Path` instead of string concatenation
    with `/`. Forward slashes work almost everywhere on Windows, but
    `subprocess.run(["cmd.exe", "/c", ...])` and other shell contexts can
-   require backslashes — convert with `str(path)` at the subprocess boundary,
+   require backslashes - convert with `str(path)` at the subprocess boundary,
    not inside Python logic.
 
 8. **Symlinks need elevated privileges on Windows** (unless Developer Mode is
@@ -793,7 +793,7 @@ that touches the OS, assume *any* platform can hit your code path.
 
 9. **POSIX file modes (0o600, 0o644, etc.) are NOT enforced on NTFS** by
    default. Tests that assert on `stat().st_mode & 0o777` must skip on
-   Windows — the concept doesn't translate. Use ACLs (`icacls`, `pywin32`)
+   Windows - the concept doesn't translate. Use ACLs (`icacls`, `pywin32`)
    for Windows secret-file protection if needed.
 
 10. **Detached background daemons on Windows need `pythonw.exe`, NOT
@@ -808,7 +808,7 @@ that touches the OS, assume *any* platform can hit your code path.
 11. **`subprocess.Popen` with `.cmd` or `.bat` shims needs `shutil.which`
     to resolve.** Passing `"agent-browser"` to `Popen` on Windows finds
     the extensionless POSIX shebang shim in `node_modules/.bin/`, which
-    `CreateProcessW` can't execute — you'll get `WinError 193 "not a valid
+    `CreateProcessW` can't execute - you'll get `WinError 193 "not a valid
     Win32 application"`. Use `shutil.which("agent-browser", path=local_bin)`
     which honors PATHEXT and picks the `.CMD` variant on Windows.
 
@@ -821,19 +821,19 @@ that touches the OS, assume *any* platform can hit your code path.
 13. **Shell commands in installers.** If you change `scripts/install.sh`,
     make the equivalent change in `scripts/install.ps1`. The two scripts
     are the canonical example of "works on Linux does not mean works on
-    Windows" and have drifted multiple times — keep them in lockstep.
+    Windows" and have drifted multiple times - keep them in lockstep.
 
 14. **Known paths that are OneDrive-redirected on Windows:** Desktop,
     Documents, Pictures, Videos. The "real" path when OneDrive Backup is
     enabled is `%USERPROFILE%\OneDrive\Desktop` (etc.), NOT
     `%USERPROFILE%\Desktop` (which exists as an empty husk). Resolve the
     real location via `ctypes` + `SHGetKnownFolderPath` or by reading the
-    `Shell Folders` registry key — never assume `~/Desktop`.
+    `Shell Folders` registry key - never assume `~/Desktop`.
 
 15. **CRLF vs LF in generated scripts.** Windows `cmd.exe` and `schtasks`
     parse line-by-line; mixed or LF-only line endings can break multi-line
     `.cmd` / `.bat` files. Use `open(path, "w", encoding="utf-8",
-    newline="\r\n")` — or `open(path, "wb")` + explicit bytes — when
+    newline="\r\n")` - or `open(path, "wb")` + explicit bytes - when
     generating scripts Windows will execute.
 
 16. **Two different quoting schemes in one command line.** `subprocess.run
@@ -855,7 +855,7 @@ Tests that use POSIX-only syscalls need a skip marker. Common ones:
   `@pytest.mark.skipif(sys.platform != "win32", reason="Windows-specific regression")`
 
 If you monkeypatch `sys.platform` for cross-platform tests, also patch
-`platform.system()` / `platform.release()` / `platform.mac_ver()` — each
+`platform.system()` / `platform.release()` / `platform.mac_ver()` - each
 re-reads the real OS independently, so half-patched tests still route
 through the wrong branch on a Windows runner.
 
@@ -902,27 +902,27 @@ After the [litellm supply chain compromise](https://github.com/BerriAI/litellm/i
 
 **How to determine the ceiling:**
 - If the package is at version `1.x.y`, use `<2`.
-- If the package is at version `0.x.y` (pre-1.0), use `<0.(current_minor + 2)` — e.g. if current is `0.29.x`, use `<0.32`. This gives ~2 minor versions of headroom while keeping the window small enough that a hostile takeover version is unlikely to land inside it.
+- If the package is at version `0.x.y` (pre-1.0), use `<0.(current_minor + 2)` - e.g. if current is `0.29.x`, use `<0.32`. This gives ~2 minor versions of headroom while keeping the window small enough that a hostile takeover version is unlikely to land inside it.
 - Exception: packages with very stable APIs (e.g. `aiohttp-socks`) can use `<1` at reviewer discretion.
 
 **Examples:**
 ```toml
-# ✅ Correct — post-1.0
+# ✅ Correct - post-1.0
 "openai>=2.21.0,<3"
 "pydantic>=2.12.5,<3"
 
-# ✅ Correct — pre-1.0 (tight minor window)
+# ✅ Correct - pre-1.0 (tight minor window)
 "asyncpg>=0.29,<0.32"
 "aiosqlite>=0.20,<0.23"
 "hindsight-client>=0.4.22,<0.5"
 
-# ❌ Rejected — no upper bound
+# ❌ Rejected - no upper bound
 "some-package>=1.2.3"
 
-# ❌ Rejected — too tight (blocks legitimate patches)
+# ❌ Rejected - too tight (blocks legitimate patches)
 "some-package==1.2.3"
 
-# ❌ Rejected — too loose for pre-1.0 (allows 80 minor versions)
+# ❌ Rejected - too loose for pre-1.0 (allows 80 minor versions)
 "some-package>=0.20,<1"
 ```
 
@@ -998,7 +998,7 @@ test(tools): add unit tests for file_operations
 
 ## Community
 
-- **Discord**: [discord.gg/NousResearch](https://discord.gg/NousResearch) — for questions, showcasing projects, and sharing skills
+- **Discord**: [discord.gg/NousResearch](https://discord.gg/NousResearch) - for questions, showcasing projects, and sharing skills
 - **GitHub Discussions**: For design proposals and architecture discussions
 - **Skills Hub**: Upload specialized skills to a registry and share them with the community
 

@@ -67,7 +67,7 @@ echo -e "${CYAN}→${NC} Checking for uv..."
 
 UV_CMD=""
 if is_termux; then
-    echo -e "${CYAN}→${NC} Termux detected — using Python's stdlib venv + pip instead of uv"
+    echo -e "${CYAN}→${NC} Termux detected - using Python's stdlib venv + pip instead of uv"
 else
     if command -v uv &> /dev/null; then
         UV_CMD="uv"
@@ -192,7 +192,7 @@ echo -e "${CYAN}→${NC} Installing dependencies..."
 
 if is_termux; then
     export ANDROID_API_LEVEL="$(getprop ro.build.version.sdk 2>/dev/null || printf '%s' "${ANDROID_API_LEVEL:-}")"
-    echo -e "${CYAN}→${NC} Termux detected — installing the tested Android bundle"
+    echo -e "${CYAN}→${NC} Termux detected - installing the tested Android bundle"
     "$SETUP_PYTHON" -m pip install --upgrade pip setuptools wheel
     if [ -f "constraints-termux.txt" ]; then
         "$SETUP_PYTHON" -m pip install -e ".[termux]" -c constraints-termux.txt || {
@@ -235,7 +235,7 @@ else
 
     if [ -f "uv.lock" ]; then
         # Hash-verified install (preferred). The lockfile records SHA256
-        # hashes for every transitive — a compromised transitive would have
+        # hashes for every transitive - a compromised transitive would have
         # a different hash and be REJECTED by uv. This is the only path
         # that protects against transitive-package supply-chain attacks
         # (the direct deps in pyproject.toml are exact-pinned, but
@@ -255,12 +255,12 @@ else
             echo -e "${GREEN}✓${NC} Dependencies installed (hash-verified via uv.lock)"
         else
             echo -e "${YELLOW}⚠${NC} Lockfile sync failed (see uv output above)."
-            echo -e "${YELLOW}⚠${NC} Falling back to PyPI resolve — transitives will NOT be hash-verified."
+            echo -e "${YELLOW}⚠${NC} Falling back to PyPI resolve - transitives will NOT be hash-verified."
             _try_install
             echo -e "${GREEN}✓${NC} Dependencies installed (transitives re-resolved, not hash-verified)"
         fi
     else
-        echo -e "${YELLOW}⚠${NC} uv.lock not found — installing without hash verification of transitives."
+        echo -e "${YELLOW}⚠${NC} uv.lock not found - installing without hash verification of transitives."
         _try_install
         echo -e "${GREEN}✓${NC} Dependencies installed (transitives re-resolved, not hash-verified)"
     fi
@@ -329,7 +329,7 @@ fi
 if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then
         cp .env.example .env
-        # .env holds API keys — restrict to owner-only access (matches
+        # .env holds API keys - restrict to owner-only access (matches
         # scripts/install.sh which already chmods 600 after creation).
         chmod 600 .env 2>/dev/null || true
         echo -e "${GREEN}✓${NC} Created .env from template"
@@ -342,7 +342,7 @@ else
 fi
 
 # ============================================================================
-# PATH setup — symlink hermes into a user-facing bin dir
+# PATH setup - symlink hermes into a user-facing bin dir
 # ============================================================================
 
 echo -e "${CYAN}→${NC} Setting up hermes command..."
@@ -383,7 +383,7 @@ else
         if ! echo "$PATH" | tr ':' '\n' | grep -q "^$HOME/.local/bin$"; then
             if ! grep -q '\.local/bin' "$SHELL_CONFIG" 2>/dev/null; then
                 echo "" >> "$SHELL_CONFIG"
-                echo "# Hermes Agent — ensure ~/.local/bin is on PATH" >> "$SHELL_CONFIG"
+                echo "# Hermes Agent - ensure ~/.local/bin is on PATH" >> "$SHELL_CONFIG"
                 echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_CONFIG"
                 echo -e "${GREEN}✓${NC} Added ~/.local/bin to PATH in $SHELL_CONFIG"
             else

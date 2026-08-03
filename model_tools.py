@@ -85,7 +85,7 @@ def _get_worker_loop():
     gets its own long-lived loop stored in thread-local storage.  This
     prevents the "Event loop is closed" errors that occurred when
     asyncio.run() was used per-call: asyncio.run() creates a loop, runs
-    the coroutine, then *closes* the loop — but cached httpx/AsyncOpenAI
+    the coroutine, then *closes* the loop - but cached httpx/AsyncOpenAI
     clients remain bound to that now-dead loop and raise RuntimeError
     during garbage collection or subsequent use.
 
@@ -126,10 +126,10 @@ def _run_async(coro):
         loop = None
 
     if loop and loop.is_running():
-        # Inside an async context (gateway, RL env) — run in a fresh thread
+        # Inside an async context (gateway, RL env) - run in a fresh thread
         # with its own event loop we own a reference to, so on timeout we
         # can cancel the task inside that loop (ThreadPoolExecutor.cancel()
-        # only works on not-yet-started futures — it's a no-op on a running
+        # only works on not-yet-started futures - it's a no-op on a running
         # worker, which previously leaked the thread on every 300 s timeout).
         import concurrent.futures
 
@@ -174,7 +174,7 @@ def _run_async(coro):
                     for t in asyncio.all_tasks(worker_loop):
                         worker_loop.call_soon_threadsafe(t.cancel)
                 except RuntimeError:
-                    # Loop already closed — nothing to cancel.
+                    # Loop already closed - nothing to cancel.
                     pass
             raise
         finally:
@@ -187,7 +187,7 @@ def _run_async(coro):
     # delegate_task), use a per-thread persistent loop.  This avoids
     # contention with the main thread's shared loop while keeping cached
     # httpx/AsyncOpenAI clients bound to a live loop for the thread's
-    # lifetime — preventing "Event loop is closed" on GC cleanup.
+    # lifetime - preventing "Event loop is closed" on GC cleanup.
     if threading.current_thread() is not threading.main_thread():
         worker_loop = _get_worker_loop()
         return worker_loop.run_until_complete(coro)
@@ -206,7 +206,7 @@ discover_builtin_tools()
 # a module-level side effect.  It was removed because discover_mcp_tools()
 # internally uses a blocking future.result(timeout=120) wait, and the
 # gateway lazy-imports this module from inside the asyncio event loop on
-# the first user message — freezing Discord/Telegram heartbeats for up to
+# the first user message - freezing Discord/Telegram heartbeats for up to
 # 120s whenever any configured MCP server was slow or unreachable (#16856).
 #
 # Each entry point now runs discovery explicitly at its own startup:
@@ -350,7 +350,7 @@ def get_tool_definitions(
             # consistent state even on a cache hit.
             global _last_resolved_tool_names
             _last_resolved_tool_names = [t["function"]["name"] for t in cached]
-            # Return a shallow copy of the list but share the dict references —
+            # Return a shallow copy of the list but share the dict references -
             # schemas are treated as read-only by all known callers.
             return list(cached)
 
@@ -462,7 +462,7 @@ def _compute_tool_definitions(
                 print(f"⚠️  Unknown toolset: {toolset_name}")
 
     # Plugin-registered tools are now resolved through the normal toolset
-    # path — validate_toolset() / resolve_toolset() / get_all_toolsets()
+    # path - validate_toolset() / resolve_toolset() / get_all_toolsets()
     # all check the tool registry for plugin-provided toolsets.  No bypass
     # needed; plugins respect enabled_toolsets / disabled_toolsets like any
     # other toolset.
@@ -472,7 +472,7 @@ def _compute_tool_definitions(
 
     # The set of tool names that actually passed check_fn filtering.
     # Use this (not tools_to_include) for any downstream schema that references
-    # other tools by name — otherwise the model sees tools mentioned in
+    # other tools by name - otherwise the model sees tools mentioned in
     # descriptions that don't actually exist, and hallucinates calls to them.
     available_tool_names = {t["function"]["name"] for t in filtered_tools}
 
@@ -551,13 +551,13 @@ def _compute_tool_definitions(
     # Sanitize schemas for broad backend compatibility. llama.cpp's
     # json-schema-to-grammar converter (used by its OAI server to build
     # GBNF tool-call parsers) rejects some shapes that cloud providers
-    # silently accept — bare "type": "object" with no properties,
+    # silently accept - bare "type": "object" with no properties,
     # string-valued schema nodes from malformed MCP servers, etc. This
     # is a no-op for schemas that are already well-formed.
     try:
         from tools.schema_sanitizer import sanitize_tool_schemas
         filtered_tools = sanitize_tool_schemas(filtered_tools)
-    except Exception as e:  # pragma: no cover — defensive
+    except Exception as e:  # pragma: no cover - defensive
         logger.warning("Schema sanitization skipped: %s", e)
 
     # ── Tool Search (progressive disclosure) ────────────────────────────
@@ -567,7 +567,7 @@ def _compute_tool_definitions(
     # window). Core Hermes tools (toolsets._HERMES_CORE_TOOLS) are NEVER
     # deferred. See tools/tool_search.py for full design notes.
     #
-    # This is deliberately the last step before returning — sanitization
+    # This is deliberately the last step before returning - sanitization
     # has already normalized schemas, and the assembly is idempotent in
     # case some caller invokes get_tool_definitions twice.
     try:
@@ -589,10 +589,10 @@ def _compute_tool_definitions(
                 print(
                     f"🔎 Tool Search (tier {assembly.tier}): {assembly.deferred_count} "
                     f"MCP/plugin tools deferred (~{assembly.deferred_tokens} tokens) behind "
-                    f"tool_search/describe/call — {_forms.get(assembly.listing_form, assembly.listing_form)}."
+                    f"tool_search/describe/call - {_forms.get(assembly.listing_form, assembly.listing_form)}."
                 )
             filtered_tools = assembly.tool_defs
-    except Exception as e:  # pragma: no cover — never break tool loading
+    except Exception as e:  # pragma: no cover - never break tool loading
         logger.warning("Tool search assembly skipped: %s", e)
 
     return filtered_tools
@@ -601,7 +601,7 @@ def _compute_tool_definitions(
 def _resolve_active_context_length() -> int:
     """Look up the active model's context length for the tool-search gate.
 
-    Returns 0 when the model can't be resolved — ``should_activate`` falls
+    Returns 0 when the model can't be resolved - ``should_activate`` falls
     back to a fixed token cutoff in that case.
     """
     try:
@@ -614,7 +614,7 @@ def _resolve_active_context_length() -> int:
         if not model_id:
             return 0
         from agent.model_metadata import get_model_context_length
-        # Honor explicit `model.context_length` in config.yaml — short-circuits
+        # Honor explicit `model.context_length` in config.yaml - short-circuits
         # the OpenRouter /models probe at get_model_context_length step 0, so
         # non-OpenRouter providers don't pay the ~2-3s OpenRouter fetch at every
         # CLI startup.  See issue #46620.
@@ -641,7 +641,7 @@ def _resolve_active_context_length() -> int:
             except Exception as rt_exc:
                 logger.debug(
                     "Runtime credential resolution failed for tool-search "
-                    "context gate (provider=%s): %s — using config values only",
+                    "context gate (provider=%s): %s - using config values only",
                     provider, rt_exc,
                 )
         return int(get_model_context_length(
@@ -680,8 +680,8 @@ _READ_SEARCH_TOOLS = {"read_file", "search_files"}
 #
 # This helper strips structural framing tokens (XML role tags, CDATA,
 # markdown code fences) and caps the message at a sane upper bound before it
-# becomes part of the conversation. It's defense-in-depth — the json layer
-# already prevents framing escape — but cheap and worth having.
+# becomes part of the conversation. It's defense-in-depth - the json layer
+# already prevents framing escape - but cheap and worth having.
 #
 # Ported from ironclaw#1639.
 _TOOL_ERROR_ROLE_TAG_RE = re.compile(
@@ -743,14 +743,14 @@ def coerce_tool_args(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
     if not properties:
         return args
 
-    # The model saw the SANITIZED schema — property keys violating provider
+    # The model saw the SANITIZED schema - property keys violating provider
     # patterns (e.g. Cloudflare's ``issue_class~neq``) were renamed before
     # the request. Map any sanitized keys back to the registry's original
     # wire names before schema lookup / dispatch.
     try:
         from tools.schema_sanitizer import unrename_tool_args
         args = unrename_tool_args(schema.get("parameters"), args)
-    except Exception:  # pragma: no cover — never break dispatch
+    except Exception:  # pragma: no cover - never break dispatch
         pass
 
     for key, value in list(args.items()):
@@ -763,7 +763,7 @@ def coerce_tool_args(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         # Strings still go through _coerce_value first so JSON-encoded
         # arrays (``'["a","b"]'``) get parsed and nullable ``"null"``
         # becomes ``None`` rather than ``["null"]``.
-        # ``None`` itself is preserved — we don't know whether the model
+        # ``None`` itself is preserved - we don't know whether the model
         # meant "omit" or "empty list", and tools with sensible defaults
         # (e.g. read_file's normalize_read_pagination) already handle it.
         if expected == "array" and value is not None and not isinstance(value, (list, tuple)):
@@ -779,7 +779,7 @@ def coerce_tool_args(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
                 if value.strip().startswith("["):
                     logger.warning(
                         "coerce_tool_args: %s.%s looks like a JSON array string "
-                        "but could not be parsed — model may have emitted a "
+                        "but could not be parsed - model may have emitted a "
                         "JSON-encoded string instead of a native array. "
                         "Falling back to single-element list.",
                         tool_name, key,
@@ -800,7 +800,7 @@ def coerce_tool_args(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
         if not isinstance(value, str):
             # Recurse into already-native containers so JSON-encoded
             # *elements* (array items) and *sub-fields* (nested object
-            # properties) get normalized too — e.g. ``todos: ['{"id":...}']``
+            # properties) get normalized too - e.g. ``todos: ['{"id":...}']``
             # or ``tasks: [{"goal": "..."}]`` where an element was emitted as
             # a JSON string. The top-level coercion above only repairs the
             # outermost value.
@@ -826,7 +826,7 @@ def _schema_accepts_kind(schema: Any, kind: str) -> bool:
     """Return True when *schema* permits a value of JSON type *kind*.
 
     Looks at ``type`` (string or list) and recurses through
-    ``anyOf``/``oneOf``/``allOf`` branches — matching the JSON-Schema shapes
+    ``anyOf``/``oneOf``/``allOf`` branches - matching the JSON-Schema shapes
     open-weight models emit against. ``kind`` is ``"array"`` or ``"object"``.
     """
     if not isinstance(schema, dict):
@@ -848,7 +848,7 @@ def _normalize_json_strings_for_schema(value: Any, schema: Any) -> Any:
     be arrays or objects, including nested array items and object properties.
 
     Open-weight models (DeepSeek, Qwen, GLM, and others) sometimes emit a
-    structured field — or an *element* of a structured field — as a
+    structured field - or an *element* of a structured field - as a
     JSON-encoded string instead of a native value. The top-level
     :func:`coerce_tool_args` pass repairs the outermost value; this helper
     walks the rest of the tree so cases like::
@@ -929,7 +929,7 @@ def _coerce_value(value: str, expected_type, schema: dict | None = None):
         return None
 
     if isinstance(expected_type, list):
-        # Union type — try each in order, return first successful coercion
+        # Union type - try each in order, return first successful coercion
         for t in expected_type:
             result = _coerce_value(value, t, schema=schema)
             if result is not value:
@@ -997,7 +997,7 @@ def _coerce_json(value: str, expected_python_type: type):
         )
         return parsed
     logger.warning(
-        "coerce_tool_args: JSON-parsed value is %s, expected %s — skipping coercion",
+        "coerce_tool_args: JSON-parsed value is %s, expected %s - skipping coercion",
         type(parsed).__name__,
         expected_python_type.__name__,
     )
@@ -1010,14 +1010,14 @@ def _coerce_number(value: str, integer_only: bool = False):
         f = float(value)
     except (ValueError, OverflowError):
         return value
-    # Guard against inf/nan — not JSON-serializable, keep original string
+    # Guard against inf/nan - not JSON-serializable, keep original string
     if f != f or f == float("inf") or f == float("-inf"):
         return value
     # If it looks like an integer (no fractional part), return int
     if f == int(f):
         return int(f)
     if integer_only:
-        # Schema wants an integer but value has decimals — keep as string
+        # Schema wants an integer but value has decimals - keep as string
         return value
     return f
 
@@ -1060,7 +1060,7 @@ def _emit_post_tool_call_hook(
 ) -> None:
     """Emit the ``post_tool_call`` observer hook.
 
-    No-ops cheaply when no plugin has registered for ``post_tool_call`` —
+    No-ops cheaply when no plugin has registered for ``post_tool_call`` -
     the ``has_hook`` gate skips both the result-field derivation and the
     payload dispatch so the no-listener path costs one dict lookup.  When
     ``status`` is not supplied, the ok/error fields are derived from the
@@ -1141,7 +1141,7 @@ def handle_function_call(
     _tool_middleware_trace = list(tool_request_middleware_trace or [])
 
     # ── Tool Search bridge dispatch ──────────────────────────────────
-    # tool_search and tool_describe are pure catalog reads — handle them
+    # tool_search and tool_describe are pure catalog reads - handle them
     # inline. tool_call is unwrapped to the underlying tool so that every
     # downstream hook (pre/post, edit approval, guardrails) sees the real
     # tool name, not the bridge.
@@ -1244,7 +1244,7 @@ def handle_function_call(
             return tool_error(f"{function_name} must be handled by the agent loop")
 
         # Check plugin hooks for a block/approve/modify directive (unless caller
-        # already checked — e.g. run_agent._invoke_tool passes skip=True to
+        # already checked - e.g. run_agent._invoke_tool passes skip=True to
         # avoid double-firing the hook).
         #
         # Single-fire contract: pre_tool_call fires exactly once per tool
@@ -1253,7 +1253,7 @@ def handle_function_call(
         # message (for `block`/`approve` directives) and any modified args
         # (for `modify` directives). Observer plugins see
         # the hook on that same pass. When skip=True, the caller already
-        # fired it — do nothing here.
+        # fired it - do nothing here.
         if not skip_pre_tool_call_hook:
             block_message: Optional[str] = None
             try:

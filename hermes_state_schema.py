@@ -4,7 +4,7 @@ Mixin contract: this is a plain mixin class consumed by
 ``hermes_state.SessionDB``. It defines no ``__init__`` and no state of its
 own; methods access the host's attributes (``self._conn``, ``self.db_path``,
 ``self._execute_write`` and other SessionDB methods) established by
-``SessionDB.__init__``. It must never import hermes_state (cycle) — shared
+``SessionDB.__init__``. It must never import hermes_state (cycle) - shared
 module-level constants live in hermes_state_common.
 """
 
@@ -33,7 +33,7 @@ logger = logging.getLogger("hermes_state")
 
 
 class SessionSchemaMixin:
-    """See module docstring — mixin for SessionDB (Schema cluster)."""
+    """See module docstring - mixin for SessionDB (Schema cluster)."""
 
     def _sqlite_supports_fts5(self, cursor: sqlite3.Cursor) -> bool:
         try:
@@ -72,7 +72,7 @@ class SessionSchemaMixin:
                 "INSERT INTO messages_fts_trigram(messages_fts_trigram) VALUES('rebuild')"
             )
         # 'rebuild' indexes EVERY row, so any deferred-backfill markers are
-        # now satisfied — clear them, otherwise the background worker would
+        # now satisfied - clear them, otherwise the background worker would
         # re-insert rows the rebuild already covered (duplicate entries).
         cursor.execute(
             "DELETE FROM state_meta WHERE key IN "
@@ -134,7 +134,7 @@ class SessionSchemaMixin:
     def _parse_schema_columns(schema_sql: str) -> Dict[str, Dict[str, str]]:
         """Extract expected columns per table from SCHEMA_SQL.
 
-        Uses an in-memory SQLite database to parse the SQL — SQLite itself
+        Uses an in-memory SQLite database to parse the SQL - SQLite itself
         handles all syntax (DEFAULT expressions with commas, inline
         REFERENCES, CHECK constraints, etc.) so there are zero regex
         edge cases.  The in-memory DB is opened, the schema DDL is
@@ -182,7 +182,7 @@ class SessionSchemaMixin:
         table_info) against the declared columns, and ADDs any that are
         missing.
 
-        This makes column additions a declarative operation — just add
+        This makes column additions a declarative operation - just add
         the column to SCHEMA_SQL and it appears on the next startup.
         Version-gated migration blocks are no longer needed for ADD COLUMN.
         """
@@ -232,7 +232,7 @@ class SessionSchemaMixin:
           the composite key), and
         * ``replace_gateway_routing_entries`` fails with "UNIQUE constraint
           failed: gateway_routing.session_key" whenever the same session_key
-          exists under a different scope — the exact isolation the composite
+          exists under a different scope - the exact isolation the composite
           key exists to provide.
 
         Each failed save logs a warning and falls back to sessions.json,
@@ -302,7 +302,7 @@ class SessionSchemaMixin:
         rebuild is unreachable on those installs (``current_version < 22``
         is already false), so every upsert in ``_record_model_usage()``
         fails with "ON CONFLICT clause does not match any PRIMARY KEY or
-        UNIQUE constraint" — aborting the enclosing write transaction and
+        UNIQUE constraint" - aborting the enclosing write transaction and
         silently zeroing all token *and* cost accounting (#73823).
 
         Idempotent; runs unconditionally on every open, same pattern as
@@ -316,7 +316,7 @@ class SessionSchemaMixin:
         except sqlite3.OperationalError:
             return
         if not rows:
-            # Table doesn't exist yet — SCHEMA_SQL creates it correctly.
+            # Table doesn't exist yet - SCHEMA_SQL creates it correctly.
             return
 
         def _col(row, idx, name):
@@ -326,7 +326,7 @@ class SessionSchemaMixin:
             _col(r, 1, "name") for r in rows if _col(r, 5, "pk")
         }
         if "task" in pk_cols:
-            # task is already in the PK — healthy.
+            # task is already in the PK - healthy.
             return
 
         logger.info(
@@ -338,8 +338,8 @@ class SessionSchemaMixin:
         # before _init_schema runs, and session_model_usage.session_id
         # REFERENCES sessions(id).  INSERT OR IGNORE does NOT suppress
         # foreign-key violations (OR IGNORE only covers uniqueness/NOT
-        # NULL conflicts), so an orphaned usage row — possible after a
-        # partial prune while accounting was broken — would abort the
+        # NULL conflicts), so an orphaned usage row - possible after a
+        # partial prune while accounting was broken - would abort the
         # whole rebuild.  Disable FK enforcement for the copy and restore
         # it afterwards.  PRAGMA foreign_keys is a no-op inside a
         # transaction, which is fine here: _init_schema runs on an
@@ -375,7 +375,7 @@ class SessionSchemaMixin:
             )
             # OR IGNORE: while the PK was wrong the reconciler may have left
             # ``task`` NULL on old rows; COALESCE to '' can theoretically
-            # collide with a genuine ''-task row — keep the first, drop the
+            # collide with a genuine ''-task row - keep the first, drop the
             # duplicate rather than fail the heal.
             cursor.execute(
                 """INSERT OR IGNORE INTO session_model_usage (
@@ -441,12 +441,12 @@ class SessionSchemaMixin:
 
         # Rebuild session_model_usage if its PRIMARY KEY lacks the ``task``
         # column (5-column PK on installs already at v22+ when the column
-        # landed — the version-gated rebuild is unreachable there, #73823).
+        # landed - the version-gated rebuild is unreachable there, #73823).
         # Same PK-rebuild constraint as gateway_routing above.
         self._heal_session_model_usage_pk(cursor)
 
         # Indexes that reference reconciler-added columns must be created
-        # AFTER _reconcile_columns runs — declaring them in SCHEMA_SQL
+        # AFTER _reconcile_columns runs - declaring them in SCHEMA_SQL
         # makes the initial executescript fail on legacy DBs (the index's
         # WHERE clause references a column that doesn't exist yet).
         try:
@@ -459,13 +459,13 @@ class SessionSchemaMixin:
             logger.debug("idx_messages_platform_msg_id create skipped: %s", exc)
 
         # Deferred indexes that reference the reconciler-added ``active``
-        # column (idx_messages_session_active) — same ordering constraint.
+        # column (idx_messages_session_active) - same ordering constraint.
         cursor.executescript(DEFERRED_INDEX_SQL)
 
         # Heal NULL ``active`` rows unconditionally on every startup.
         # On real-world DBs the reconciler-added ``active`` column can lack
         # its NOT NULL DEFAULT 1 (older reconciler builds reconstructed the
-        # type without the default — see #51646: PRAGMA shows
+        # type without the default - see #51646: PRAGMA shows
         # (17,'active','INTEGER',0,None,0) in the wild), so INSERTs that
         # omitted the column wrote NULL and the ``WHERE active = 1``
         # transcript loaders hid the whole history.  The INSERTs now set
@@ -539,7 +539,7 @@ class SessionSchemaMixin:
                 # and rebuilds both FTS tables in external-content form, so
                 # running the v11 inline backfill first would only burn
                 # startup time and WAL space before v23 throws the work
-                # away — and its inline INSERT shape no longer matches the
+                # away - and its inline INSERT shape no longer matches the
                 # current external-content FTS_SQL anyway. Kept only for
                 # source archaeology; unreachable while SCHEMA_VERSION >= 23.
                 pass
@@ -698,16 +698,16 @@ class SessionSchemaMixin:
                 # copy of every message (content || tool_name || tool_calls),
                 # and the trigram index additionally covers role='tool' rows
                 # (~90% of message bytes: base64 payloads, file dumps) at
-                # ~2.6x amplification — together ~75% of state.db on heavy
+                # ~2.6x amplification - together ~75% of state.db on heavy
                 # installs (observed: 18.9 GB of a 25 GB DB).
                 #
                 # OPT-IN, NOT AUTOMATIC. The transition (demote old vtables →
                 # new external-content schema → backfill → teardown → VACUUM)
                 # is disk-heavy (transient ~2x file size to fully reclaim via
                 # VACUUM) and long (~1-2h background on a 25 GB DB). Doing it
-                # silently on every big user's next open — with a completeness
+                # silently on every big user's next open - with a completeness
                 # guarantee that depends on the process staying alive long
-                # enough — is the wrong default. So on an EXISTING install we
+                # enough - is the wrong default. So on an EXISTING install we
                 # touch nothing here: the v22 inline FTS keeps working exactly
                 # as before, and we only record a flag advertising that the
                 # optimization is available. `hermes sessions optimize-storage`
@@ -718,7 +718,7 @@ class SessionSchemaMixin:
                 # main schema_version. The FTS storage LAYOUT is tracked by an
                 # independent `fts_storage_version` marker (see
                 # _fts_storage_version / SETTLE below), so schema_version
-                # advances to SCHEMA_VERSION here like every other migration —
+                # advances to SCHEMA_VERSION here like every other migration -
                 # future v24+ migrations land automatically for legacy-FTS
                 # users too. Only the FTS *layout* waits for opt-in.
                 if fts5_available and self._db_has_legacy_inline_fts(cursor):
@@ -731,7 +731,7 @@ class SessionSchemaMixin:
             # (absent/0) until `optimize-storage` runs. An INTERRUPTED
             # optimize (legacy vtables already demoted, but rebuild markers
             # or demoted trash tables still present, or an empty external
-            # index against non-empty messages) is NOT stamped either —
+            # index against non-empty messages) is NOT stamped either -
             # the marker is the source of truth for "fully optimized", and
             # `fts_optimize_available()` keeps offering the resume until the
             # transition actually completes.
@@ -750,7 +750,7 @@ class SessionSchemaMixin:
                 )
 
             # Advance schema_version to current for ALL non-FTS-layout
-            # migrations. This is deliberately NOT gated on the FTS opt-in —
+            # migrations. This is deliberately NOT gated on the FTS opt-in -
             # holding the whole version back would block every future schema
             # migration for a user who never optimizes. FTS5 being unavailable
             # is the one case we skip (we can't have created the current FTS
@@ -765,7 +765,7 @@ class SessionSchemaMixin:
                     (SCHEMA_VERSION,),
                 )
 
-        # Unique title index — always ensure it exists. Older databases may
+        # Unique title index - always ensure it exists. Older databases may
         # contain duplicate aliases from before the constraint was enforced;
         # preserve every session while letting the newest one retain the alias.
         title_index_sql = (
@@ -775,7 +775,7 @@ class SessionSchemaMixin:
         try:
             cursor.execute(title_index_sql)
         except sqlite3.IntegrityError:
-            # The index is an optimization — its creation must never abort
+            # The index is an optimization - its creation must never abort
             # opening the database, so the repair itself is also guarded.
             try:
                 cursor.execute(
@@ -865,7 +865,7 @@ class SessionSchemaMixin:
         Existing gateway sessions predate the display_name / origin_json /
         expiry_finalized columns; copy what sessions.json knows so consumers
         can switch to state.db without losing pre-migration sessions.
-        Only fills NULL columns — never overwrites data written by newer code.
+        Only fills NULL columns - never overwrites data written by newer code.
         """
         sessions_file = get_hermes_home() / "sessions" / "sessions.json"
         if not sessions_file.exists():

@@ -22,7 +22,7 @@ Un informe útil incluye:
 
 Por favor lee el §2 y el §3 antes de enviar. Los informes que demuestren
 límites de una heurística en proceso que esta política no trate como un
-límite serán cerrados como fuera de alcance bajo el §3 — pero consulta el §3.2:
+límite serán cerrados como fuera de alcance bajo el §3 - pero consulta el §3.2:
 siguen siendo bienvenidos como issues o pull requests regulares, simplemente no
 a través del canal de seguridad privado.
 
@@ -47,18 +47,18 @@ operadores deben razonar sobre ellas en los mismos términos.
   contexto del agente: entrada del operador, fetches web, email, mensajes del gateway,
   lecturas de archivos, respuestas del servidor MCP, resultados de herramientas.
 - **Envolvente de confianza.** El conjunto de recursos a los que un operador ha otorgado
-  implícitamente acceso a Hermes Agent al ejecutarlo — típicamente, todo lo que
+  implícitamente acceso a Hermes Agent al ejecutarlo - típicamente, todo lo que
   la propia cuenta de usuario del operador puede alcanzar en el host.
 - **Postura.** Una declaración explícita en la documentación o código de Hermes Agent
   sobre cómo una capa consumidora (adaptador, UI, escritor de archivos,
-  shell) debe tratar la salida del agente — ej. "el dashboard renderiza
+  shell) debe tratar la salida del agente - ej. "el dashboard renderiza
   la salida del agente como HTML inerte."
 
 ### 2.2 El Límite: Aislamiento a Nivel de SO
 
 **El único límite de seguridad contra un LLM adversario es el
 sistema operativo.** Nada dentro del proceso del agente constituye
-contención — ni la puerta de aprobación, ni la redacción de salida, ni ningún
+contención - ni la puerta de aprobación, ni la redacción de salida, ni ningún
 escáner de patrones, ni ninguna lista de herramientas permitidas. Cualquier componente dentro
 del proceso que filtre la salida del LLM es una heurística operando sobre una
 cadena influenciada por el atacante, y esta política lo trata como tal.
@@ -71,7 +71,7 @@ diferentes amenazas y un operador debe elegir deliberadamente.
 Un backend de terminal no predeterminado ejecuta comandos de shell emitidos por el LLM
 dentro de un contenedor, host remoto o sandbox en la nube. Las herramientas de archivos
 (`read_file`, `write_file`, `patch`) también se ejecutan a través de este backend,
-ya que están implementadas sobre el contrato del shell — no pueden
+ya que están implementadas sobre el contrato del shell - no pueden
 alcanzar rutas que el backend no exponga.
 
 Lo que confina: todo lo que el agente hace emitiendo operaciones de shell o
@@ -88,8 +88,8 @@ operador es de confianza.
 #### Envoltura del proceso completo
 
 La envoltura del proceso completo ejecuta todo el árbol de procesos del agente dentro de un
-sandbox. Cada ruta de código — shell, ejecución de código, MCP, herramientas de archivos,
-plugins, hooks, carga de habilidades — está sujeta a la misma política de sistema de archivos,
+sandbox. Cada ruta de código - shell, ejecución de código, MCP, herramientas de archivos,
+plugins, hooks, carga de habilidades - está sujeta a la misma política de sistema de archivos,
 red, proceso e (donde sea aplicable) inferencia.
 
 Hermes Agent admite esto de dos maneras:
@@ -107,8 +107,8 @@ Hermes Agent admite esto de dos maneras:
 Bajo una envoltura de proceso completo, las heurísticas en proceso de Hermes Agent
 (§2.4) funcionan como prevención de accidentes en capas sobre un límite real.
 Esta es la postura soportada cuando el agente ingiere contenido de superficies
-que el operador no controla — la web abierta, email entrante, canales de
-múltiples usuarios, servidores MCP no confiables — y para despliegues en
+que el operador no controla - la web abierta, email entrante, canales de
+múltiples usuarios, servidores MCP no confiables - y para despliegues en
 producción o compartidos.
 
 Los operadores que ejecuten el backend local predeterminado con superficies de entrada
@@ -146,7 +146,7 @@ Los siguientes componentes filtran o advierten sobre el comportamiento del LLM. 
 - **Skills Guard** escanea el contenido de habilidades instalables en busca de patrones
   de inyección. Es una ayuda de revisión; el límite para habilidades de terceros
   es la revisión del operador antes de instalar. Revisar una habilidad significa
-  leer su código Python y scripts, no solo su descripción SKILL.md —
+  leer su código Python y scripts, no solo su descripción SKILL.md -
   las habilidades ejecutan Python arbitrario en el momento de importación.
 
 ### 2.5 Modelo de Confianza de Plugins
@@ -155,7 +155,7 @@ Los plugins se cargan en el proceso del agente y se ejecutan con todos los privi
 del agente: pueden leer las mismas credenciales, llamar a las mismas
 herramientas, registrar los mismos hooks e importar los mismos módulos que
 cualquier cosa incluida en el árbol. El límite para los plugins de terceros es
-la revisión del operador antes de instalar — la misma regla que las habilidades (§2.4),
+la revisión del operador antes de instalar - la misma regla que las habilidades (§2.4),
 mencionado por separado porque los plugins son arquitectónicamente más pesados
 y a menudo incluyen sus propios servicios en segundo plano, oyentes de red
 y dependencias.
@@ -235,7 +235,7 @@ modelo de autorización, pero las reglas a continuación se aplican uniformement
   que vacía credenciales a un upstream, etc.).
 - Violaciones de la documentación del modelo de confianza: código que se comporta
   contrariamente a lo que esta política, la propia documentación de Hermes Agent o
-  las expectativas razonables del operador predecirían — incluyendo casos donde
+  las expectativas razonables del operador predecirían - incluyendo casos donde
   Hermes Agent ha documentado una postura sobre cómo su salida debe ser
   renderizada por una capa consumidora (dashboard, adaptador de gateway,
   escritor de archivos, shell) y una ruta de código rompe esa postura.
@@ -245,18 +245,18 @@ modelo de autorización, pero las reglas a continuación se aplican uniformement
 "Fuera de alcance" aquí significa "no es una vulnerabilidad de seguridad bajo esta
 política." No significa "no vale la pena reportarlo." Las mejoras a las
 heurísticas en proceso, ideas de fortalecimiento y correcciones de UX son bienvenidas como
-issues o pull requests regulares — la puerta de aprobación siempre puede detectar
+issues o pull requests regulares - la puerta de aprobación siempre puede detectar
 más patrones, la redacción puede volverse más inteligente, el comportamiento del adaptador
 puede apretarse siempre. Estos elementos simplemente no van a través del canal de
 divulgación privada y no reciben avisos.
 
-- **Bypasses de heurísticas en proceso (§2.4)** — bypasses de regex de la puerta de aprobación,
+- **Bypasses de heurísticas en proceso (§2.4)** - bypasses de regex de la puerta de aprobación,
   bypasses de redacción, bypasses de patrones de Skills Guard, e informes
   análogos contra heurísticas futuras. Estos componentes no son límites;
   vencerlos no es una vulnerabilidad bajo esta política.
 - **Inyección de prompts per se.** Hacer que el LLM emita salida inusual
-  — a través de contenido inyectado, alucinación, artefactos de entrenamiento,
-  o cualquier otra causa — no es en sí mismo una vulnerabilidad. "Logré
+  - a través de contenido inyectado, alucinación, artefactos de entrenamiento,
+  o cualquier otra causa - no es en sí mismo una vulnerabilidad. "Logré
   inyección de prompts" sin un resultado encadenado del §3.1 no es un informe
   procesable bajo esta política.
 - **Consecuencias de una postura de aislamiento elegida.** Los informes de que
@@ -272,7 +272,7 @@ divulgación privada y no reciben avisos.
   en el dashboard u otros componentes, aprobaciones deshabilitadas,
   backend local en producción, perfiles de desarrollo que evitan
   la seguridad de hermes-home, y similares. Los informes contra esas
-  configuraciones no son vulnerabilidades — eso es el trabajo del flag.
+  configuraciones no son vulnerabilidades - eso es el trabajo del flag.
 - **Habilidades y plugins contribuidos por la comunidad.** Las habilidades de terceros
   (incluyendo el repositorio de habilidades de la comunidad) y los plugins de terceros
   están en la superficie de revisión del operador, no en la superficie de confianza de Hermes Agent

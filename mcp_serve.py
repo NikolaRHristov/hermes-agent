@@ -1,5 +1,5 @@
 """
-Hermes MCP Server — expose messaging conversations as MCP tools.
+Hermes MCP Server - expose messaging conversations as MCP tools.
 
 Starts a stdio MCP server that lets any MCP client (Claude Code, Cursor, Codex,
 etc.) list conversations, read message history, send messages, poll for live
@@ -282,7 +282,7 @@ def _extract_attachments(msg: dict) -> List[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Event Bridge — polls SessionDB for new messages, maintains event queue
+# Event Bridge - polls SessionDB for new messages, maintains event queue
 # ---------------------------------------------------------------------------
 
 QUEUE_LIMIT = 1000
@@ -331,7 +331,7 @@ class EventBridge:
         self._last_poll_timestamps: Dict[str, float] = {}  # session_key -> unix timestamp
         # In-memory approval tracking (populated from events)
         self._pending_approvals: Dict[str, dict] = {}
-        # mtime cache — skip expensive work when state.db hasn't changed
+        # mtime cache - skip expensive work when state.db hasn't changed
         self._state_db_mtime: float = 0.0
         self._cached_sessions_index: dict = {}
 
@@ -505,10 +505,10 @@ class EventBridge:
         """Check for new messages across all sessions.
 
         Uses a single mtime check on state.db to skip work when nothing
-        has changed — makes 200ms polling essentially free.  Since #9006
+        has changed - makes 200ms polling essentially free.  Since #9006
         the routing index itself lives in state.db (session rows carry
         session_key/origin metadata), so a new conversation and its first
-        message land in the SAME file and one mtime check covers both —
+        message land in the SAME file and one mtime check covers both -
         eliminating the old dual-file (sessions.json + state.db) race that
         could drop brand-new conversations (#8925).
         """
@@ -524,10 +524,10 @@ class EventBridge:
             db_mtime = 0.0
 
         if db_mtime == self._state_db_mtime:
-            return  # Nothing changed since last poll — skip entirely
+            return  # Nothing changed since last poll - skip entirely
 
         self._state_db_mtime = db_mtime
-        # Refresh the routing index from state.db on every change tick —
+        # Refresh the routing index from state.db on every change tick -
         # it's a single indexed query and it can never lag the messages
         # table (both live in the same database file).
         self._cached_sessions_index = _load_sessions_index()
@@ -877,7 +877,7 @@ def create_mcp_server(event_bridge: Optional[EventBridge] = None) -> "FastMCP":
     ) -> str:
         """Send a message to a platform conversation.
 
-        The target format is "platform:chat_id" — same format used by the
+        The target format is "platform:chat_id" - same format used by the
         channels_list tool. You can also use human-friendly channel names
         that will be resolved automatically.
 
@@ -965,7 +965,7 @@ def create_mcp_server(event_bridge: Optional[EventBridge] = None) -> "FastMCP":
         """List pending approval requests observed during this bridge session.
 
         Returns exec and plugin approval requests that the bridge has seen
-        since it started. Approvals are live-session only — older approvals
+        since it started. Approvals are live-session only - older approvals
         from before the bridge connected are not included.
         """
         approvals = bridge.list_pending_approvals()

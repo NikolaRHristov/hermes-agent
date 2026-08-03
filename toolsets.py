@@ -36,7 +36,7 @@ _HERMES_CORE_TOOLS = [
     # Desktop GUI affordances: read the embedded terminal pane, close an agent's
     # read-only terminal tab, open a URL/file in the preview pane, focus a
     # pane, and react to a message with an emoji (all gated on HERMES_DESKTOP
-    # via check_fn — hidden outside the GUI).
+    # via check_fn - hidden outside the GUI).
     "read_terminal", "close_terminal", "open_preview", "focus_pane", "react_to_message",
     # File manipulation
     "read_file", "write_file", "patch", "search_files",
@@ -60,7 +60,7 @@ _HERMES_CORE_TOOLS = [
     # NOTE: the desktop Project tools (project_list/create/switch) are
     # deliberately NOT here. They only make sense where a GUI can follow the
     # move, so they live in the `project` toolset and are enabled solely by the
-    # GUI gateway (tui_gateway/server.py::_load_enabled_toolsets) — keeping them
+    # GUI gateway (tui_gateway/server.py::_load_enabled_toolsets) - keeping them
     # off every CLI/messaging/cron schema (narrow waist).
     # Session history search
     "session_search",
@@ -72,7 +72,7 @@ _HERMES_CORE_TOOLS = [
     "cronjob",
     # Home Assistant smart home control (gated on HASS_TOKEN via check_fn)
     "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
-    # Kanban multi-agent coordination — only in schema when the agent is
+    # Kanban multi-agent coordination - only in schema when the agent is
     # spawned as a kanban worker (HERMES_KANBAN_TASK env set) or the current
     # profile explicitly enables the kanban toolset. Gated via check_fn in
     # tools/kanban_tools.py.
@@ -176,7 +176,7 @@ TOOLSETS = {
 
     "computer_use": {
         "description": (
-            "Background desktop control via cua-driver (macOS/Windows/Linux) — "
+            "Background desktop control via cua-driver (macOS/Windows/Linux) - "
             "screenshots, mouse, keyboard, scroll, drag. Does NOT steal the "
             "user's cursor or keyboard focus. Works with any tool-capable model."
         ),
@@ -252,7 +252,7 @@ TOOLSETS = {
     },
 
     "project": {
-        "description": "Desktop Projects — create/switch named workspaces (GUI sessions only)",
+        "description": "Desktop Projects - create/switch named workspaces (GUI sessions only)",
         "tools": ["project_list", "project_create", "project_switch"],
         "includes": []
     },
@@ -275,7 +275,7 @@ TOOLSETS = {
         "includes": []
     },
 
-    # "honcho" toolset removed — Honcho is now a memory provider plugin.
+    # "honcho" toolset removed - Honcho is now a memory provider plugin.
     # Tools are injected via MemoryManager, not the toolset system.
 
     "homeassistant": {
@@ -286,7 +286,7 @@ TOOLSETS = {
 
     "kanban": {
         "description": (
-            "Kanban multi-agent coordination — only active when the agent "
+            "Kanban multi-agent coordination - only active when the agent "
             "is spawned by the kanban dispatcher (HERMES_KANBAN_TASK env "
             "set). The dispatcher runs inside the gateway by default; see "
             "`kanban.dispatch_in_gateway` in config.yaml. Lets workers mark "
@@ -367,7 +367,7 @@ TOOLSETS = {
         "includes": ["web", "vision", "image_gen"]
     },
 
-    # Coding posture (base Hermes — CLI/TUI/desktop/ACP). Auto-selected in a
+    # Coding posture (base Hermes - CLI/TUI/desktop/ACP). Auto-selected in a
     # code workspace; see agent/coding_context.py. Keeps everything you reach
     # for while pairing on code and drops the rest (messaging, tts, image_gen,
     # spotify, home-assistant, cron, computer-use).
@@ -398,13 +398,13 @@ TOOLSETS = {
     # Full Hermes toolsets (CLI + messaging platforms)
     #
     # All platforms share the same core tools. Note: agents do NOT get an
-    # agent-callable send_message tool — outbound platform messaging is handled
+    # agent-callable send_message tool - outbound platform messaging is handled
     # outside the agent loop (cron delivery, the gateway kanban notifier, and
     # the `hermes send` CLI), not by the model deciding to send on its own.
     # ==========================================================================
 
     "hermes-acp": {
-        "description": "Editor integration (VS Code, Zed, JetBrains) — coding-focused tools without messaging, audio, or clarify UI",
+        "description": "Editor integration (VS Code, Zed, JetBrains) - coding-focused tools without messaging, audio, or clarify UI",
         "tools": [
             "web_search", "web_extract",
             "terminal", "process",
@@ -423,7 +423,7 @@ TOOLSETS = {
     },
 
     "hermes-api-server": {
-        "description": "OpenAI-compatible API server — full agent tools accessible via HTTP (no interactive UI tools like clarify or send_message)",
+        "description": "OpenAI-compatible API server - full agent tools accessible via HTTP (no interactive UI tools like clarify or send_message)",
         "tools": [
             # Web
             "web_search", "web_extract",
@@ -467,7 +467,7 @@ TOOLSETS = {
 
     "hermes-cron": {
         # Mirrors hermes-cli so cron's "default" toolset is the same set of
-        # core tools users see interactively — then `hermes tools` filters
+        # core tools users see interactively - then `hermes tools` filters
         # them down per the platform config. _DEFAULT_OFF_TOOLSETS (moa,
         # homeassistant) are excluded by _get_platform_tools() unless
         # the user explicitly enables them.
@@ -702,7 +702,7 @@ def bundle_non_core_tools(toolset_name: str) -> Set[str]:
     Bundle nesting is one level deep in practice (only ``hermes-gateway``
     includes other bundles, and those leaves don't nest further), so a single
     ``includes`` pass is sufficient. Unknown/garbage names fall back to the
-    full resolution minus core — never re-introducing the core wipe.
+    full resolution minus core - never re-introducing the core wipe.
     """
     core = set(_HERMES_CORE_TOOLS)
     ts_def = get_toolset(toolset_name)
@@ -750,7 +750,7 @@ def resolve_toolset(name: str, visited: Set[str] = None, *, include_registry: bo
         return sorted(all_tools)
 
     # Check for cycles / already-resolved (diamond deps).
-    # Silently return [] — either this is a diamond (not a bug, tools already
+    # Silently return [] - either this is a diamond (not a bug, tools already
     # collected via another path) or a genuine cycle (safe to skip).
     if name in visited:
         return []
@@ -821,7 +821,7 @@ def _get_plugin_toolset_names() -> Set[str]:
     """Return toolset names registered by plugins (from the tool registry).
 
     These are toolsets that exist in the registry but not in the static
-    ``TOOLSETS`` dict — i.e. they were added by plugins at load time.
+    ``TOOLSETS`` dict - i.e. they were added by plugins at load time.
     """
     try:
         from tools.registry import registry

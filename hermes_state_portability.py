@@ -4,7 +4,7 @@ Mixin contract: this is a plain mixin class consumed by
 ``hermes_state.SessionDB``. It defines no ``__init__`` and no state of its
 own; methods access the host's attributes (``self._conn``, ``self.db_path``,
 ``self._execute_write`` and other SessionDB methods) established by
-``SessionDB.__init__``. It must never import hermes_state (cycle) — shared
+``SessionDB.__init__``. It must never import hermes_state (cycle) - shared
 module-level constants live in hermes_state_common.
 """
 
@@ -26,7 +26,7 @@ logger = logging.getLogger("hermes_state")
 
 
 class SessionPortabilityMixin:
-    """See module docstring — mixin for SessionDB (Port cluster)."""
+    """See module docstring - mixin for SessionDB (Port cluster)."""
 
     @classmethod
     def _compact_session_cols(cls) -> str:
@@ -45,7 +45,7 @@ class SessionPortabilityMixin:
         """Distinct non-empty session cwds with usage stats, for repo discovery.
 
         Aggregates across ALL session history (not a single page), so the desktop
-        can surface every git repo the user has worked in — not just the repos
+        can surface every git repo the user has worked in - not just the repos
         that happen to be in the currently-loaded recents. Children/branches
         count: a worktree session is still a real workspace signal.
         """
@@ -79,7 +79,7 @@ class SessionPortabilityMixin:
         ``cron_{job_id}_{timestamp}`` (see ``cron/scheduler.run_job``). They are
         never compression roots and never branch, so this deliberately skips the
         ``list_sessions_rich`` recursive compression-chain CTE / leading-wildcard
-        ``id_query`` path — that path seeds from *every* ``source='cron'`` row in
+        ``id_query`` path - that path seeds from *every* ``source='cron'`` row in
         the DB and only filters to one job's runs after the scan, so it scales
         with the whole cron pile (a heavy history makes the desktop run-history
         endpoint time out before it eventually populates).
@@ -177,7 +177,7 @@ class SessionPortabilityMixin:
         """Titled sessions whose first user turn was a ``/skill`` invocation.
 
         Those titles were generated from the expanded message, which embeds the
-        whole skill body — so they describe the skill rather than the request.
+        whole skill body - so they describe the skill rather than the request.
         Returns ``id``, ``title``, and the full first-turn ``content`` so a
         caller can re-derive what the user typed. Newest first.
         """
