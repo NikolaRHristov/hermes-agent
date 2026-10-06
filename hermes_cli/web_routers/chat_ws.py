@@ -16,6 +16,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 
 from agent.interrupt_scope import InterruptScope, bind_interrupt_scope
+from hermes_cli.active_sessions import ActiveSessionRegistryError, active_session_registry_snapshot
 from hermes_cli.pty_session import RegistryFull
 from hermes_cli.web_deps import LateState, late
 from hermes_cli.web_routers.chat_ws_errors import chat_start_failure_message
@@ -86,7 +87,7 @@ def _channel_or_close_code(ws: WebSocket) -> Optional[str]:
 
 def _read_active_session_file(path: Path) -> Optional[str]:
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError):
         return None
     return str(data.get("session_id") or "").strip() or None
@@ -185,6 +186,12 @@ async def _unwind_console_worker(worker: Any, scope: InterruptScope, reason: str
     if not done:
         exited.cancel()
         _log.warning("console worker still running %ss after %s", _CONSOLE_UNWIND_TIMEOUT_SECONDS, reason)
+
+
+async def _wait_for_console_worker(worker: Any) -> Any:
+    return await asyncio.wait_for(
+        asyncio.wrap_future(worker), timeout=_CONSOLE_COMMAND_TIMEOUT_SECONDS,
+    )
 
 
 class _ConsoleSender:
@@ -309,7 +316,7 @@ async def console_ws(ws: WebSocket) -> None:
             _execute_console_line, engine, line, confirmed=confirmed, profile=profile, scope=scope,
         )
         try:
-            result = await asyncio.wait_for(asyncio.wrap_future(worker), timeout=_CONSOLE_COMMAND_TIMEOUT_SECONDS)
+            result = await _wait_for_console_worker(worker)
         except asyncio.CancelledError:
             await _unwind_console_worker(worker, scope, "cancelled")
             raise
@@ -429,9 +436,32 @@ async def _pty_fail(ws: WebSocket, exc: BaseException) -> None:
     await ws.close(code=1011)
 
 
+def _lease_holder_pid(session_id: Optional[str], *, registry_home: Optional[str] = None) -> Optional[int]:
+    """The live process holding ``session_id``'s single-writer lease, if any.
+
+    A keep-alive PTY whose chat was never resumed from carries no resume target
+    in its registry key, so the lease holder is what identifies the terminal
+    that has to give the session back. Leases live under the HOME the chat runs
+    in — a profile-scoped chat's child claims its lease in the profile's home,
+    not the dashboard's launch home — so ``registry_home`` is the child's. A
+    registry that cannot be read is not a reason to refuse the attach: the
+    caller simply finds no holder.
+    """
+    if not session_id:
+        return None
+    try:
+        for entry in active_session_registry_snapshot(registry_home=registry_home):
+            if entry.get("session_id") == session_id and isinstance(entry.get("pid"), int):
+                return entry["pid"]
+    except (ActiveSessionRegistryError, OSError, ValueError):
+        return None
+    return None
+
+
 @router.websocket("/api/pty")
 async def pty_ws(ws: WebSocket) -> None:
     from hermes_cli.web_server_chat import PTY_REGISTRY, PtyBridge, PtyUnavailableError, _PTY_BRIDGE_AVAILABLE, _RESIZE_RE
+    from pm.package import InstallError
     gate = await _ws_gate(ws, "pty")
     if gate is None:
         return
@@ -478,6 +508,16 @@ async def pty_ws(ws: WebSocket) -> None:
     resolve_kwargs = {"resume": resume, "sidecar_url": sidecar_url, "profile": profile}
     if active_session_file is not None:
         resolve_kwargs["active_session_file"] = str(active_session_file)
+    # A picked workspace only applies to a FRESH chat; a resumed session keeps its own cwd.
+    if not resume:
+        from hermes_cli.web_routers.chat_workspaces import resolve_chat_cwd
+        try:
+            workspace_cwd = resolve_chat_cwd(ws.query_params.get("cwd"))
+        except HTTPException as exc:  # dead/relative path: fail closed, never the launch dir
+            await _pty_fail(ws, exc)
+            return
+        if workspace_cwd:
+            resolve_kwargs["workspace_cwd"] = workspace_cwd
 
     try:
         argv, cwd, env = await _resolve_chat_argv_async(**resolve_kwargs)
@@ -487,8 +527,12 @@ async def pty_ws(ws: WebSocket) -> None:
     except SystemExit as exc:  # _make_tui_argv sys.exit(1)s when node/npm is missing
         await _pty_fail(ws, exc)
         return
+    except InstallError as exc:  # PM could not provide node; its remedy names the fix
+        await _pty_fail(ws, exc)
+        return
 
-    attach_token = ws.query_params.get("attach") or None
+    raw_attach_token = ws.query_params.get("attach") or None
+    attach_token = raw_attach_token
     registry_resume = raw_resume
     if raw_resume and env:
         registry_resume = env.get("HERMES_TUI_RESUME") or raw_resume
@@ -514,6 +558,9 @@ async def pty_ws(ws: WebSocket) -> None:
 
     # Keep-alive path: the PTY outlives this socket; reattach by token.
     try:
+        await PTY_REGISTRY.close_other_sessions(raw_attach_token, keep_key=attach_token)
+        holder_pid = _lease_holder_pid(registry_resume, registry_home=(env or {}).get("HERMES_HOME"))
+        await PTY_REGISTRY.close_orphaned_sessions(registry_resume, keep_key=attach_token, holder_pid=holder_pid)
         session, _created = await PTY_REGISTRY.attach_or_spawn(attach_token, spawn=_spawn)
     except (PtyUnavailableError, FileNotFoundError, OSError, RegistryFull) as exc:
         await _pty_fail(ws, exc)
