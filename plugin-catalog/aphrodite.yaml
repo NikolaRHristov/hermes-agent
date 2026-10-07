@@ -1,13 +1,13 @@
 name: aphrodite
 repo: https://github.com/PlayForm/Aphrodite-Hermes
-sha: 17dfa4df9102d7e3dc6b02c8720d85f7fc3a3298
-description: CCR compression plugin - 28-type classifier, 13 tools, context engine, TOML-driven templates.
+sha: e95afcd9d99360fdf73ecdd2f540af7cd81597ec
+description: "CCR compression plugin - 28-type classifier, 13 tools, opt-in context engine, TOML-driven templates. Disclosure - pre_tool_call auto-backgrounds long terminal/process commands (modify: background=true, notify_on_complete=true) and rewrites chained terminal commands when enabled."
 maintainer: NikolaRHristov
 tier: community
 category: tools
-requires_hermes: ">=0.16.0"
+requires_hermes: ">=0.20.2"
 docs_url: https://github.com/PlayForm/Aphrodite-Hermes#readme
-version: "2.2.5"
+version: "2.2.6"
 capabilities:
   provides_tools:
   - aphrodite_retrieve
